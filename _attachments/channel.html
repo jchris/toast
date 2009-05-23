@@ -27,7 +27,7 @@
   var c_xhr;
     $.CouchApp(function(app) {
       var name = unescape(document.location.hash.replace(/^#/,''));
-
+      $('h1').text()
       function refreshView() {
         app.view("channels",{
           reduce: false, 
@@ -40,9 +40,9 @@
             var m = row.value;
             return '<li>'
               + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
-              + m.author.name
+              + m.author.name.replace(/<(.|\n)*?>/g, '')
               + "</strong>: "
-              + m.body
+              + m.body.replace(/<(.|\n)*?>/g, '')
               + '</span><br class="clear"/></li>';
           }).join(''));
         }});
