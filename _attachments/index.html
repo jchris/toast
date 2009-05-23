@@ -23,7 +23,9 @@
     $.CouchApp(function(app) {
       app.view("channels",{group_level: 1, success: function(json) {
         $("#channels").html(json.rows.map(function(row) {
-          return '<li>'+JSON.stringify(row)+'</li>';
+          return '<li><a href="channel.html#'+ 
+          row.key
+          +'">'+row.key+'</a> '+row.value+' messages</li>';
         }).join(''));
       }});
       
