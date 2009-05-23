@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Welcome to Toast</title>
+    <link rel="stylesheet" href="style/main.css" type="text/css">
+  </head>
+  <body>
+    <h1>Toast - Join a Channel:</h1>
+    <ul id="channels"></ul>
+  </body>
+  <script src="/_utils/script/json2.js"></script>
+  <script src="/_utils/script/jquery.js"></script>
+  <script src="/_utils/script/jquery.couch.js"></script>
+  <script src="vendor/couchapp/jquery.couchapp.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    $.CouchApp(function(app) {
+      app.view("channels",{success: function(json) {
+        $("#channels").html(json.rows.map(function(row) {
+          return '<li>'+JSON.stringify(row)+'</li>';
+        }).join(''));
+      }});
+    });
+  </script>
+</html>
