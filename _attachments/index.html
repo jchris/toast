@@ -22,8 +22,8 @@
       app.view("channels",{group_level: 1, success: function(json) {
         $("#channels").html(json.rows.map(function(row) {
           return '<li><a href="channel.html#'+ 
-          row.key
-          +'">'+row.key+'</a> '+row.value+' messages</li>';
+          encodeURIComponent(row.key[0])
+          +'">'+row.key[0].replace(/<(.|\n)*?>/g, '')+'</a> '+row.value+' messages</li>';
         }).join(''));
       }});
       

@@ -6,11 +6,11 @@
   </head>
   <body>
     <h1>Toast</h1>
-    <p>Go to the index <a href="index.html">to make new channels or browse to others.</a></p>
+    <p>Go to the index <a href="index.html">to make new channels or browse to others.</a> <a href="http://github.com/jchris/toast">Download the Toast source code at Github.</a></p>
     <form id="new_message" action="#">
       <p><label for="author-name">Name</label>
         <input type="text" name="author-name" value="" id="author-name">
-        <label for="author-email">Email (<em>for Gravatar</em>)</label><input type="text" name="author-email" value="" id="author-email">
+        <label for="author-email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)</label><input type="text" name="author-email" value="" id="author-email">
         
       </p>
       <p><label for="message">Message</label> <input type="text" name="message" value="" id="message" size=140>
@@ -22,17 +22,28 @@
   <script src="/_utils/script/json2.js"></script>
   <script src="/_utils/script/jquery.js"></script>
   <script src="/_utils/script/jquery.couch.js"></script>
+  <script src="/_utils/script/jquery.cookies.js"></script>
   <script src="vendor/couchapp/jquery.couchapp.js"></script>
   <script type="text/javascript" charset="utf-8">
   var c_xhr;
     $.CouchApp(function(app) {
-      var name = unescape(document.location.hash.replace(/^#/,''));
-      $('h1').text()
+      function linkify(body, term) {
+        return body.replace(/https?\:\/\/\S+/g,function(a) {
+          return '<a target="_blank" href="'+a+'">'+a+'</a>';
+        }).replace(/\@([\w\-]+)/g,function(user,name) {
+          return '<a target="_blank" href="http://twitter.com/'+name+'">'+user+'</a>';
+        }).replace(/\#([\w\-]+)/g,function(word,term) {
+          return '<a target="_blank" href="http://search.twitter.com/search?q='+encodeURIComponent(term)+'">'+word+'</a>';
+        });
+      };
+      
+      var cname = unescape(document.location.hash.replace(/^#/,''));
+      $('h1').text('Toast - ' + cname);
       function refreshView() {
         app.view("channels",{
           reduce: false, 
-          startkey : [name,{}],
-          endkey : [name],
+          startkey : [cname,{}],
+          endkey : [cname],
           descending: true,
           limit : 25,
           success: function(json) {
@@ -42,12 +53,20 @@
               + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
               + m.author.name.replace(/<(.|\n)*?>/g, '')
               + "</strong>: "
-              + m.body.replace(/<(.|\n)*?>/g, '')
+              + linkify(m.body.replace(/<(.|\n)*?>/g, ''))
               + '</span><br class="clear"/></li>';
           }).join(''));
         }});
       };
+      $("#author-name").val($.cookies.get("name"));
+      $("#author-email").val($.cookies.get("email"));
       $("#new_message").submit(function() {
+        var name, email;
+        name = $("#author-name").val();
+        email = $("#author-email").val();
+        $.cookies.set("name", name);
+        $.cookies.set("email", email);
+        
         var message = {
           author: {
             name : $("#author-name").val(),
@@ -55,7 +74,7 @@
           },
           body : $("#message").val()
         };
-        app.db.saveDoc({channel:name,message:message});
+        app.db.saveDoc({channel:cname,message:message});
         $("#message").val('')
         return false;
       });
