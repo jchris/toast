@@ -1,1 +1,31 @@
 /* add styles here */
+
+body {
+  font-family:optima;
+}
+
+ul#messages {
+  list-style: none;
+}
+
+.clear {
+  clear:both;
+}
+
+ul#messages li {
+  padding:4px;
+}
+
+ul#messages img.gravatar {
+  padding-right:4px;
+  float:left;
+}
+
+.say {
+  float:left;
+}
+
+form {
+  padding:10px;
+  background:#ddd;
+}

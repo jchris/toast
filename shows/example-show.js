@@ -1,6 +1,6 @@
 function(doc, req) {
-  // !code lib/helpers/template.js
-  // !json lib.templates
+  // !code helpers/template.js
+  // !json templates
   
   respondWith(req, {
     html : function() {

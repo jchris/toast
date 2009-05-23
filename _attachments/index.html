@@ -7,10 +7,7 @@
   <body>
     <h1>Toast - Join a Channel (or Create one):</h1>
     <form id="new_channel" action="#">
-      
       <p><label for="name">Channel Name</label> <input type="text" name="name" value="" id="name"></p>
-      <p><label for="message">Initial Message</label> <input type="text" name="message" value="" id="message">
-      </p>
       <p><input type="submit" value="Go &rarr;"></p>
     </form>
     <ul id="channels"></ul>
@@ -30,9 +27,11 @@
       }});
       
       $("#new_channel").submit(function() {
-        var name = $('#name').val();
-        var message = $('#message').val();
-        app.db.saveDoc({channel:name,message:message});
+        var cname = $('#name').val();
+        // return false;
+        $('body').append('<a href="channel.html#'+encodeURIComponent(cname)+'">redirect</a>');
+        var absurl = $('body a:last')[0].href;
+        document.location = absurl;
         return false;
       });
     });

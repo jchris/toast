@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Welcome to Toast</title>
+    <link rel="stylesheet" href="style/main.css" type="text/css">
+  </head>
+  <body>
+    <h1>Toast</h1>
+    <form id="new_message" action="#">
+      <p><label for="author-name">Name</label>
+        <input type="text" name="author-name" value="" id="author-name">
+        <label for="author-email">Email (<em>for Gravatar</em>)</label><input type="text" name="author-email" value="" id="author-email">
+        
+      </p>
+      <p><label for="message">Message</label> <input type="text" name="message" value="" id="message" size=140>
+      </p>
+      <p><input type="submit" value="Go &rarr;"></p>
+    </form>
+    <ul id="messages"></ul>
+  </body>
+  <script src="/_utils/script/json2.js"></script>
+  <script src="/_utils/script/jquery.js"></script>
+  <script src="/_utils/script/jquery.couch.js"></script>
+  <script src="vendor/couchapp/jquery.couchapp.js"></script>
+  <script type="text/javascript" charset="utf-8">
+  var c_xhr;
+    $.CouchApp(function(app) {
+      var name = unescape(document.location.hash.replace(/^#/,''));
+
+      function refreshView() {
+        app.view("channels",{
+          reduce: false, 
+          startkey : [name,{}],
+          endkey : [name],
+          descending: true,
+          limit : 25,
+          success: function(json) {
+          $("#messages").html(json.rows.reverse().map(function(row) {
+            var m = row.value;
+            return '<li>'
+              + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
+              + m.author.name
+              + "</strong>: "
+              + m.body
+              + '</span><br class="clear"/></li>';
+          }).join(''));
+        }});
+      };
+      $("#new_message").submit(function() {
+        var message = {
+          author: {
+            name : $("#author-name").val(),
+            email :$("#author-email").val(),
+          },
+          body : $("#message").val()
+        };
+        app.db.saveDoc({channel:name,message:message});
+        return false;
+      });
+      // this is where we hang on the continuous _changes api
+      // get the raw xhr
+      c_xhr = jQuery.ajaxSettings.xhr();
+      c_xhr.open("GET", app.db.uri+"_changes?continuous=true", true);
+      c_xhr.send("");
+      c_xhr.onreadystatechange = function() {
+        refreshView();
+      };
+    });
+  </script>
+</html>
