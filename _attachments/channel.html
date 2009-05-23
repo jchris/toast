@@ -6,6 +6,7 @@
   </head>
   <body>
     <h1>Toast</h1>
+    <p>Go to the index <a href="index.html">to make new channels or browse to others.</a></p>
     <form id="new_message" action="#">
       <p><label for="author-name">Name</label>
         <input type="text" name="author-name" value="" id="author-name">
@@ -35,7 +36,7 @@
           descending: true,
           limit : 25,
           success: function(json) {
-          $("#messages").html(json.rows.reverse().map(function(row) {
+          $("#messages").html(json.rows.map(function(row) {
             var m = row.value;
             return '<li>'
               + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
@@ -55,6 +56,7 @@
           body : $("#message").val()
         };
         app.db.saveDoc({channel:name,message:message});
+        $("#message").val('')
         return false;
       });
       // this is where we hang on the continuous _changes api
