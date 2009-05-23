@@ -5,7 +5,14 @@
     <link rel="stylesheet" href="style/main.css" type="text/css">
   </head>
   <body>
-    <h1>Toast - Join a Channel:</h1>
+    <h1>Toast - Join a Channel (or Create one):</h1>
+    <form id="new_channel" action="#">
+      
+      <p><label for="name">Channel Name</label> <input type="text" name="name" value="" id="name"></p>
+      <p><label for="message">Initial Message</label> <input type="text" name="message" value="" id="message">
+      </p>
+      <p><input type="submit" value="Go &rarr;"></p>
+    </form>
     <ul id="channels"></ul>
   </body>
   <script src="/_utils/script/json2.js"></script>
@@ -14,11 +21,18 @@
   <script src="vendor/couchapp/jquery.couchapp.js"></script>
   <script type="text/javascript" charset="utf-8">
     $.CouchApp(function(app) {
-      app.view("channels",{success: function(json) {
+      app.view("channels",{group_level: 1, success: function(json) {
         $("#channels").html(json.rows.map(function(row) {
           return '<li>'+JSON.stringify(row)+'</li>';
         }).join(''));
       }});
+      
+      $("#new_channel").submit(function() {
+        var name = $('#name').val();
+        var message = $('#message').val();
+        app.db.saveDoc({channel:name,message:message});
+        return false;
+      });
     });
   </script>
 </html>
