@@ -31,6 +31,7 @@
   <script src="/_utils/script/jquery.couch.js"></script>
   <script src="/_utils/script/jquery.cookies.js"></script>
   <script src="vendor/couchapp/jquery.couchapp.js"></script>
+  <script src="app.js"></script>
   <script type="text/javascript" charset="utf-8">
   var c_xhr;
     $.CouchApp(function(app) {
@@ -43,15 +44,6 @@
           return '<a target="_blank" href="http://search.twitter.com/search?q='+encodeURIComponent(term)+'">'+word+'</a>';
         });
       };
-      
-      function escapeHTML(st) {                                       
-              return(                                                                 
-                  st.replace(/&/g,'&amp;').                                         
-                      replace(/>/g,'&gt;').                                           
-                      replace(/</g,'&lt;').                                           
-                      replace(/"/g,'&quot;')                                         
-              );                                                                     
-          };
       
       var cname = unescape(document.location.hash.replace(/^#/,''));
       $('h1').text('Toast - ' + cname);
@@ -70,7 +62,7 @@
               + escapeHTML(m.author.name)
               + "</strong>: "
               + linkify(escapeHTML(m.body))
-              + '</span><br class="clear"/></li>';
+              + '</span> <a class="perma" href="'+app.showPath('toast',row.id)+'">perma</a><br class="clear"/></li>';
           }).join(''));
         }});
       };

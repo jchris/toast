@@ -17,13 +17,15 @@
   <script src="/_utils/script/jquery.js"></script>
   <script src="/_utils/script/jquery.couch.js"></script>
   <script src="vendor/couchapp/jquery.couchapp.js"></script>
+  <script src="app.js"></script>
+  
   <script type="text/javascript" charset="utf-8">
     $.CouchApp(function(app) {
       app.view("channels",{group_level: 1, success: function(json) {
         $("#channels").html(json.rows.map(function(row) {
           return '<li><a href="channel.html#'+ 
           encodeURIComponent(row.key[0])
-          +'">'+row.key[0].replace(/<(.|\n)*?>/g, '')+'</a> '+row.value+' messages</li>';
+          +'">'+escapeHTML(row.key[0])+'</a> '+row.value+' messages</li>';
         }).join(''));
       }});
       

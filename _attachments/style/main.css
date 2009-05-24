@@ -5,6 +5,11 @@ body {
   font-family:Optima, "Palatino Linotype", Garamond, Georgia, serif;
 }
 
+
+h2 {
+  color:#222;
+}
+
 #chat {
   width:65%;
 }
@@ -33,6 +38,11 @@ ul#messages img.gravatar {
 
 .say {
 /*  float:left;*/
+}
+
+a.perma {
+  font-size:70%;
+  color:#abb;
 }
 
 form {
