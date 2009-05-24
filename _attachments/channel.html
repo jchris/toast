@@ -13,14 +13,14 @@
     </div>
     <div id="chat">
       <form id="new_message" action="#">
-        <p><label for="author-name">Name</label>
-          <input type="text" name="author-name" value="" id="author-name">
-          <label for="author-email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)</label><input type="text" name="author-email" value="" id="author-email">
-
-        </p>
         <p><label for="message">Message</label> <input type="text" name="message" value="" id="message" size=90 autocomplete="off">
         </p>
-        <p><input type="submit" value="Go &rarr;"></p>
+        <p><label for="author-name">Name</label>
+          <input type="text" name="author-name" value="" id="author-name">
+          <label for="author-email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)</label>
+          <input type="text" name="author-email" value="" id="author-email">
+          <input type="submit" value="Go &rarr;">
+        </p>
       </form>
       <ul id="messages"></ul>
     </div>
