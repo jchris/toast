@@ -1,10 +1,17 @@
-function(m) {
+function(doc) {
   // !code helpers/md5.js
-  if (m.channel && m.message) {
-    var mess = m.message;
-    if (mess && mess.author && mess.author.email) {
-      mess.author.gravatar = hex_md5(mess.author.email);      
-    }
-    emit([m.channel, m._local_seq], mess);
+  // !code _attachments/app.js
+  
+  if (doc.channel && doc.message) {
+    var mess = doc.message;
+    var v = {
+      author : {
+        name : safeHTML(mess.author.name, 50),
+        gravatar : hex_md5(mess.author.email),
+        url: escapeHTML(mess.author.url)
+      },
+      body : safeHTML(mess.body, 250)
+    };
+    emit([doc.channel, doc._local_seq], v);
   }
 };

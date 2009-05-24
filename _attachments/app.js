@@ -6,3 +6,7 @@ function escapeHTML(st) {
       replace(/"/g,'&quot;')                                         
   );                                                                     
 };
+
+function safeHTML(st, len) {
+  return escapeHTML(st.substring(0,len));
+}

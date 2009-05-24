@@ -10,9 +10,14 @@
     <h1>Toast</h1>
     <div id="sidebar">
       <p>Go to the index <a href="index.html">to make new channels or find others.</a> Download the <a href="http://github.com/jchris/toast">Toast source code at Github.</a></p>
-      <p><strong>Toast</strong> is deployed on a standard instance of <a href="http://couchdb.org">CouchDB</a>, running on an old Mac Mini in an overheated colo closet. You are encouraged to install CouchDB (0.10.0) on your computer and run your own Toast instances. You can even use replication to sync with other people's chats.</p>
+      <p><strong>Toast</strong> is 100% pure <a href="http://couchdb.org">CouchDB</a>, deployed to an old Mac Mini in an overheated colo closet. You are encouraged to install CouchDB (0.10.0) on your computer and run your own Toast instances. You can even use replication to sync with other people's chats in near real-time.</p>
+      <h4>Learn About CouchDB</h4>
+      <p><a href="http://my.safaribooksonline.com/9780596158156?cid=orm-cat-readnow-9780596158156">O'Reilly</a> is releasing a book on CouchDB. <a href="http://jan.prima.de/~jan/plok/">Jan</a>, <a href="http://tumbolia.org/nslater">Noah</a> and <a href="http://jchrisa.net">myself</a> are the authors. The book is released under Creative Commons and <a href="http://books.couchdb.org/relax/">available for free on the web</a>.</p>
       <h4>About CouchApps:</h4>
-      <div style="width:325px;text-align:left" id="__ss_1357222"><a style="font:14px Helvetica,Arial,Sans-serif;display:block;margin:12px 0 3px 0;text-decoration:underline;" href="http://www.slideshare.net/jchrisa/couchdb-to-the-edge?type=powerpoint" title="CouchDB To The Edge">CouchDB To The Edge</a><object style="margin:0px" width="325" height="255"><param name="movie" value="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=to-the-edge-090428093711-phpapp02&rel=0&stripped_title=couchdb-to-the-edge" /><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><embed src="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=to-the-edge-090428093711-phpapp02&rel=0&stripped_title=couchdb-to-the-edge" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="325" height="255"></embed></object></div>
+      <div id="slideplayer"></div>
+      <h4>Get Involved:</h4>
+      <p>To get involved in the p2p web, join the <a href="http://groups.google.com/group/couchapp">CouchApp Mailing List</a>. Also please replicate this database to your local instance of CouchDB, modify the application, pass it along, and show your friends. :)</p>
+      <p>Or if you're interested in improving or customizing <strong>Toast</strong>, join the <a href="http://jchrisa.net/toast/_design/toast/channel.html#Toasting">Toasting</a> channel.</p>
     </div>
     <div id="chat">
       <form id="new_message" action="#">
@@ -22,6 +27,7 @@
           <input type="text" name="author-name" value="" id="author-name">
           <label for="author-email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)</label>
           <input type="text" name="author-email" value="" id="author-email">
+          <label for="author-url">URL</label> <input type="text" name="author-url" value="" id="author-url">
           <input type="submit" value="Go &rarr;">
         </p>
       </form>
@@ -61,26 +67,38 @@
             var m = row.value;
             return '<li>'
               + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
-              + escapeHTML(m.author.name)
+              + (m.author.url ? 
+                '<a href="'+
+                escapeHTML(m.author.url) 
+                +'">'+
+                m.author.name
+                +'</a>'
+                : m.author.name)
               + "</strong>: "
-              + linkify(escapeHTML(m.body))
+              + linkify(m.body)
               + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">perma</a><br class="clear"/></li>';
           }).join(''));
         }});
       };
       $("#author-name").val($.cookies.get("name"));
-      $("#author-email").val($.cookies.get("email"));
+      $("#author-email").val($.cookies.get("email"))
+      var authorRand =  $.cookies.get("rand") || Math.random().toString();
+      $("#author-url").val($.cookies.get("url"));
       $("#new_message").submit(function() {
-        var name, email;
+        var name, email, url;
         name = $("#author-name").val();
         email = $("#author-email").val();
+        url = $("#author-url").val();
         $.cookies.set("name", name);
         $.cookies.set("email", email);
+        $.cookies.set("url", url);
+        $.cookies.set("rand", authorRand);
         
         var message = {
           author: {
-            name : $("#author-name").val(),
-            email :$("#author-email").val(),
+            name : name,
+            email :(email||authorRand),
+            url :url
           },
           body : $("#message").val()
         };
@@ -100,7 +118,7 @@
         };        
       }})
       
-
+      $('#slideplayer')[0].innerHTML = '<div style="width:325px;height:255px;text-align:left" id="__ss_1357222"><a style="font:14px Helvetica,Arial,Sans-serif;display:block;margin:12px 0 3px 0;text-decoration:underline;" href="http://www.slideshare.net/jchrisa/couchdb-to-the-edge?type=powerpoint" title="CouchDB To The Edge">CouchDB To The Edge</a><object style="margin:0px" width="325" height="255"><param name="movie" value="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=to-the-edge-090428093711-phpapp02&rel=0&stripped_title=couchdb-to-the-edge" /><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><embed src="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=to-the-edge-090428093711-phpapp02&rel=0&stripped_title=couchdb-to-the-edge" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="325" height="255"></embed></object></div>';
 
     });
   </script>

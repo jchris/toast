@@ -36,8 +36,8 @@ ul#messages img.gravatar {
   float:left;
 }
 
-.say {
-/*  float:left;*/
+.perma .say {
+  font-size:180%;
 }
 
 a.perma {
