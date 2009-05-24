@@ -19,7 +19,7 @@ ul#messages {
 }
 
 .clear {
-  clear:both;
+  clear:left;
 }
 
 ul#messages li {
@@ -32,7 +32,7 @@ ul#messages img.gravatar {
 }
 
 .say {
-  float:left;
+/*  float:left;*/
 }
 
 form {
