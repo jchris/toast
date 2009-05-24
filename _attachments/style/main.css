@@ -1,7 +1,17 @@
 /* add styles here */
 
+
 body {
-  font-family:optima;
+  font-family:Optima, "Palatino Linotype", Garamond, Georgia, serif;
+}
+
+#chat {
+  width:65%;
+}
+
+#sidebar {
+  float:right;
+  width:30%;
 }
 
 ul#messages {
