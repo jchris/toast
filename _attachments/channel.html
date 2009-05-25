@@ -12,8 +12,9 @@
       <p>Go to the index <a href="index.html">to make new channels or find others.</a> Download the <a href="http://github.com/jchris/toast">Toast source code at Github.</a></p>
       <p><strong>Toast</strong> is 100% pure <a href="http://couchdb.org">CouchDB</a>, deployed to an old Mac Mini in an overheated colo closet. You are encouraged to install CouchDB (0.10.0-dev) on your computer and run your own Toast instances. You can even use replication to sync with other people's chats in near real-time.</p>
       <h4>Learn About CouchDB</h4>
-      <p><a href="http://my.safaribooksonline.com/9780596158156?cid=orm-cat-readnow-9780596158156">O'Reilly</a> is releasing a book on CouchDB. <a href="http://jan.prima.de/~jan/plok/">Jan</a>, <a href="http://tumbolia.org/nslater">Noah</a> and <a href="http://jchrisa.net">myself</a> are the authors. The book is released under Creative Commons and <a href="http://books.couchdb.org/relax/">available for free on the web</a>.</p>
+      <p><a href="http://my.safaribooksonline.com/9780596158156?cid=orm-cat-readnow-9780596158156">O'Reilly is releasing a book on CouchDB.</a> <a href="http://jan.prima.de/~jan/plok/">Jan</a>, <a href="http://tumbolia.org/nslater">Noah</a> and <a href="http://jchrisa.net">myself</a> are the authors. The book is released under Creative Commons and <a href="http://books.couchdb.org/relax/">available for free on the web</a>.</p>
       <p>There is also a <a href="http://manning.com/chandler/">CouchDB book being released by Manning, written by Chris Chandler.</a></p>
+      <p>Or come to the <a href="http://erlang-factory.com/conference/London2009/university/CouchDB">CouchDB Tutorial at Erlang Factory in London 22nd June.</a></p>
       <h4>About CouchApps:</h4>
       <div id="slideplayer"></div>
       <h4>Get Involved:</h4>
@@ -44,43 +45,10 @@
   <script type="text/javascript" charset="utf-8">
   var c_xhr;
     $.CouchApp(function(app) {
-      function linkify(body, term) {
-        return body.replace(/https?\:\/\/\S+/g,function(a) {
-          return '<a target="_blank" href="'+a+'">'+a+'</a>';
-        }).replace(/\@([\w\-]+)/g,function(user,name) {
-          return '<a target="_blank" href="http://twitter.com/'+name+'">'+user+'</a>';
-        }).replace(/\#([\w\-]+)/g,function(word,term) {
-          return '<a target="_blank" href="http://search.twitter.com/search?q='+encodeURIComponent(term)+'">'+word+'</a>';
-        });
-      };
       
       var cname = unescape(document.location.hash.replace(/^#/,''));
       $('h1').text('Toast - ' + cname);
-      function refreshView() {
-        app.view("channels",{
-          reduce: false, 
-          startkey : [cname,{}],
-          endkey : [cname],
-          descending: true,
-          limit : 25,
-          success: function(json) {
-          $("#messages").html(json.rows.map(function(row) {
-            var m = row.value;
-            return '<li>'
-              + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
-              + (m.author.url ? 
-                '<a href="'+
-                escapeHTML(m.author.url) 
-                +'">'+
-                m.author.name
-                +'</a>'
-                : m.author.name)
-              + "</strong>: "
-              + linkify(m.body)
-              + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">'+( m.date || 'perma')+'</a><br class="clear"/></li>';
-          }).join(''));
-        }});
-      };
+
       $("#author-name").val($.cookies.get("name"));
       $("#author-email").val($.cookies.get("email"));
       var authorRand =  $.cookies.get("rand") || Math.random().toString();
@@ -112,13 +80,13 @@
       });
       // this is where we hang on the continuous _changes api
       // get the raw xhr
-      refreshView();
-      app.db.info({success: function(json) {
+      refreshView(app, cname);
+      app.db.info({success: function(db_info) {
         c_xhr = jQuery.ajaxSettings.xhr();
-        c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+json.update_seq, true);
+        c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+db_info.update_seq, true);
         c_xhr.send("");
         c_xhr.onreadystatechange = function() {
-          refreshView();
+          refreshView(app, cname);
         };        
       }})
       
