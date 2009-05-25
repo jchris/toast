@@ -82,7 +82,7 @@
         }});
       };
       $("#author-name").val($.cookies.get("name"));
-      $("#author-email").val($.cookies.get("email"))
+      $("#author-email").val($.cookies.get("email"));
       var authorRand =  $.cookies.get("rand") || Math.random().toString();
       $("#author-url").val($.cookies.get("url"));
       $("#new_message").submit(function() {
@@ -102,7 +102,7 @@
               email :(email||authorRand),
               url :url
             },
-            date : new Date();,
+            date : new Date(),
             body : body
           };
           app.db.saveDoc({channel:cname,message:message});
