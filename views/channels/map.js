@@ -11,7 +11,7 @@ function(doc) {
         url: escapeHTML(mess.author.url)
       },
       body : safeHTML(mess.body, 250),
-      date : mess.date
+      date : safeHTML(mess.date, 50)
     };
     emit([doc.channel, doc._local_seq], v);
   }
