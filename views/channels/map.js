@@ -10,7 +10,8 @@ function(doc) {
         gravatar : hex_md5(mess.author.email),
         url: escapeHTML(mess.author.url)
       },
-      body : safeHTML(mess.body, 250)
+      body : safeHTML(mess.body, 250),
+      date : mess.date
     };
     emit([doc.channel, doc._local_seq], v);
   }

@@ -77,7 +77,7 @@
                 : m.author.name)
               + "</strong>: "
               + linkify(m.body)
-              + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">perma</a><br class="clear"/></li>';
+              + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">perma</a> <span class="date">' + m.date + '</span><br class="clear"/></li>';
           }).join(''));
         }});
       };
@@ -102,10 +102,11 @@
               email :(email||authorRand),
               url :url
             },
+            date : new Date();,
             body : body
           };
           app.db.saveDoc({channel:cname,message:message});
-          $("#message").val('')
+          $("#message").val('');
         }
         return false;
       });

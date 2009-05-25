@@ -10,6 +10,7 @@ function(doc, req) {
     name : escapeHTML(m.author.name),
     channel : escapeHTML(doc.channel),
     gravatar :  hex_md5(m.author.email),
-    body : escapeHTML(m.body)
+    body : escapeHTML(m.body),
+    date : escapeHTML(m.date)
   });
 };
