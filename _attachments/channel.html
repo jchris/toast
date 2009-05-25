@@ -77,7 +77,7 @@
                 : m.author.name)
               + "</strong>: "
               + linkify(m.body)
-              + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">perma</a> <span class="date">' + m.date + '</span><br class="clear"/></li>';
+              + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">perma</a> <span class="date">' +( m.date || '') + '</span><br class="clear"/></li>';
           }).join(''));
         }});
       };
