@@ -1,6 +1,6 @@
 function escapeHTML(st) {                                       
   return(                                                                 
-    st.replace(/&/g,'&amp;').                                         
+    st && st.replace(/&/g,'&amp;').                                         
       replace(/>/g,'&gt;').                                           
       replace(/</g,'&lt;').                                           
       replace(/"/g,'&quot;')                                         
@@ -8,7 +8,7 @@ function escapeHTML(st) {
 };
 
 function safeHTML(st, len) {
-  return escapeHTML(st.substring(0,len));
+  return st ? escapeHTML(st.substring(0,len)) : '';
 }
 
 function linkify(body, term) {
@@ -17,7 +17,7 @@ function linkify(body, term) {
   }).replace(/\@([\w\-]+)/g,function(user,name) {
     return '<a target="_blank" href="http://twitter.com/'+name+'">'+user+'</a>';
   }).replace(/\#([\w\-]+)/g,function(word,term) {
-    return '<a target="_blank" href="http://search.twitter.com/search?q='+encodeURIComponent(term)+'">'+word+'</a>';
+    return '<a href="#'+encodeURIComponent(term)+'">'+word+'</a>';
   });
 };
 
@@ -47,6 +47,47 @@ function refreshView(app, cname) {
   }});
 };
 
-function joinRoom(app, name) {
-  
+function joinChannel(app, cname) {
+  $('h1').text('Toast - ' + cname);
+
+  $("#author-name").val($.cookies.get("name"));
+  $("#author-email").val($.cookies.get("email"));
+  var authorRand =  $.cookies.get("rand") || Math.random().toString();
+  $("#author-url").val($.cookies.get("url"));
+  $("#new_message").submit(function() {
+    var name, email, url, body;
+    name = $("#author-name").val();
+    email = $("#author-email").val();
+    url = $("#author-url").val();
+    $.cookies.set("name", name);
+    $.cookies.set("email", email);
+    $.cookies.set("url", url);
+    $.cookies.set("rand", authorRand);
+    body = $("#message").val();
+    if (body) {
+      var message = {
+        author: {
+          name : name,
+          email :(email||authorRand),
+          url :url
+        },
+        date : new Date(),
+        body : body
+      };
+      app.db.saveDoc({channel:cname,message:message});
+      $("#message").val('');
+    }
+    return false;
+  });
+  // this is where we hang on the continuous _changes api
+  // get the raw xhr
+  refreshView(app, cname);
+  app.db.info({success: function(db_info) {
+    c_xhr = jQuery.ajaxSettings.xhr();
+    c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+db_info.update_seq, true);
+    c_xhr.send("");
+    c_xhr.onreadystatechange = function() {
+      refreshView(app, cname);
+    };        
+  }});
 };

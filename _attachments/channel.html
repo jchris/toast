@@ -47,48 +47,15 @@
     $.CouchApp(function(app) {
       
       var cname = unescape(document.location.hash.replace(/^#/,''));
-      $('h1').text('Toast - ' + cname);
-
-      $("#author-name").val($.cookies.get("name"));
-      $("#author-email").val($.cookies.get("email"));
-      var authorRand =  $.cookies.get("rand") || Math.random().toString();
-      $("#author-url").val($.cookies.get("url"));
-      $("#new_message").submit(function() {
-        var name, email, url, body;
-        name = $("#author-name").val();
-        email = $("#author-email").val();
-        url = $("#author-url").val();
-        $.cookies.set("name", name);
-        $.cookies.set("email", email);
-        $.cookies.set("url", url);
-        $.cookies.set("rand", authorRand);
-        body = $("#message").val();
-        if (body) {
-          var message = {
-            author: {
-              name : name,
-              email :(email||authorRand),
-              url :url
-            },
-            date : new Date(),
-            body : body
-          };
-          app.db.saveDoc({channel:cname,message:message});
-          $("#message").val('');
+      joinChannel(app, cname);
+      var newname=cname;
+      setInterval(function() {
+        newname = unescape(document.location.hash.replace(/^#/,''));
+        if (newname != cname) {
+          joinChannel(app, newname);
+          cname=newname
         }
-        return false;
-      });
-      // this is where we hang on the continuous _changes api
-      // get the raw xhr
-      refreshView(app, cname);
-      app.db.info({success: function(db_info) {
-        c_xhr = jQuery.ajaxSettings.xhr();
-        c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+db_info.update_seq, true);
-        c_xhr.send("");
-        c_xhr.onreadystatechange = function() {
-          refreshView(app, cname);
-        };        
-      }})
+      }, 500);
       
       $('#slideplayer')[0].innerHTML = '<div style="width:325px;height:255px;text-align:left" id="__ss_1357222"><a style="font:14px Helvetica,Arial,Sans-serif;display:block;margin:12px 0 3px 0;text-decoration:underline;" href="http://www.slideshare.net/jchrisa/couchdb-to-the-edge?type=powerpoint" title="CouchDB To The Edge">CouchDB To The Edge</a><object style="margin:0px" width="325" height="255"><param name="movie" value="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=to-the-edge-090428093711-phpapp02&rel=0&stripped_title=couchdb-to-the-edge" /><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><embed src="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=to-the-edge-090428093711-phpapp02&rel=0&stripped_title=couchdb-to-the-edge" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="325" height="255"></embed></object></div>';
 
