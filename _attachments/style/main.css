@@ -40,7 +40,7 @@ ul#messages img.gravatar {
   font-size:180%;
 }
 
-a.perma {
+a.perma, .date {
   font-size:70%;
   color:#dde;
 }
@@ -49,8 +49,3 @@ form {
   padding:10px;
   background:#ddd;
 }
-
-.date {
-  font-size: 70%;
-}
-
