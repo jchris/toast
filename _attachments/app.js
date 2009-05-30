@@ -82,12 +82,26 @@ function joinChannel(app, cname) {
   // this is where we hang on the continuous _changes api
   // get the raw xhr
   refreshView(app, cname);
-  app.db.info({success: function(db_info) {
-    c_xhr = jQuery.ajaxSettings.xhr();
-    c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+db_info.update_seq, true);
-    c_xhr.send("");
-    c_xhr.onreadystatechange = function() {
-      refreshView(app, cname);
-    };        
-  }});
+  connectToChanges(app, cname, refreshView);
 };
+
+function changeXHR(app, cname, db_info, fun) {
+  var c_xhr = jQuery.ajaxSettings.xhr();
+  c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+db_info.update_seq, true);
+  c_xhr.send("");
+  c_xhr.onreadystatechange = function() {
+    fun(app, cname);
+  };
+  return c_xhr;
+}
+
+function connectToChanges(app, cname, fun) {
+  app.db.info({success: function(db_info) {
+    var x = changeXHR(app, cname, db_info, fun);
+    setInterval(function() {
+      x.abort();
+      x = changeXHR(app, cname, db_info, fun);
+    },1000 * 60);
+  }});
+}
+
