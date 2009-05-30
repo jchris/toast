@@ -1,25 +1,3 @@
-function escapeHTML(st) {                                       
-  return(                                                                 
-    st && st.replace(/&/g,'&amp;').                                         
-      replace(/>/g,'&gt;').                                           
-      replace(/</g,'&lt;').                                           
-      replace(/"/g,'&quot;')                                         
-  );                                                                     
-};
-
-function safeHTML(st, len) {
-  return st ? escapeHTML(st.substring(0,len)) : '';
-}
-
-function linkify(body, term) {
-  return body.replace(/https?\:\/\/\S+/g,function(a) {
-    return '<a target="_blank" href="'+a+'">'+a+'</a>';
-  }).replace(/\@([\w\-]+)/g,function(user,name) {
-    return '<a target="_blank" href="http://twitter.com/'+name+'">'+user+'</a>';
-  }).replace(/\#([\w\-]+)/g,function(word,term) {
-    return '<a href="#'+encodeURIComponent(term)+'">'+word+'</a>';
-  });
-};
 
 function refreshView(app, cname) {
   app.view("channels",{
@@ -82,26 +60,24 @@ function joinChannel(app, cname) {
   // this is where we hang on the continuous _changes api
   // get the raw xhr
   refreshView(app, cname);
-  connectToChanges(app, cname, refreshView);
+  connectToChanges(app, function() {
+    refreshView(app, cname);
+  });
 };
 
-function changeXHR(app, cname, db_info, fun) {
-  var c_xhr = jQuery.ajaxSettings.xhr();
-  c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+db_info.update_seq, true);
-  c_xhr.send("");
-  c_xhr.onreadystatechange = function() {
-    fun(app, cname);
+function connectToChanges(app, fun) {
+  function resetHXR(x) {
+    x.abort();
+    connectToChanges(app, fun);    
   };
-  return c_xhr;
-}
-
-function connectToChanges(app, cname, fun) {
-  app.db.info({success: function(db_info) {
-    var x = changeXHR(app, cname, db_info, fun);
-    setInterval(function() {
-      x.abort();
-      x = changeXHR(app, cname, db_info, fun);
-    },1000 * 60);
+  app.db.info({success: function(db_info) {  
+    var c_xhr = jQuery.ajaxSettings.xhr();
+    c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+db_info.update_seq, true);
+    c_xhr.send("");
+    c_xhr.onreadystatechange = fun;
+    setTimeout(function() {
+      resetHXR(c_xhr);      
+    }, 1000 * 60);
   }});
-}
+};
 
