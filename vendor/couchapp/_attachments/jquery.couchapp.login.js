@@ -27,7 +27,7 @@
       $.CouchApp.app.login.session({
         loggedIn : function(r) {
           div.html('Welcome <a target="_new" href="/_utils/document.html?'+
-            encodeURIComponent(r.info.user_db) +
+            encodeURIComponent(r.info.authentication_db) +
             '/org.couchdb.user%3A' + 
             encodeURIComponent(r.userCtx.name)+'">' +
             r.userCtx.name +
