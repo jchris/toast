@@ -72,7 +72,7 @@ function connectToChanges(app, fun) {
   };
   app.db.info({success: function(db_info) {  
     var c_xhr = jQuery.ajaxSettings.xhr();
-    c_xhr.open("GET", app.db.uri+"_changes?continuous=true&since="+db_info.update_seq, true);
+    c_xhr.open("GET", app.db.uri+"_changes?feed=continuous&since="+db_info.update_seq, true);
     c_xhr.send("");
     c_xhr.onreadystatechange = fun;
     setTimeout(function() {
