@@ -41,7 +41,7 @@
 
   var login;
   
-  function init(app) {
+  $.CouchApp = $.CouchApp || function(appFun) {
     $(function() {
       var dbname = document.location.href.split('/')[3];
       var dname = unescape(document.location.href).split('/')[5];
@@ -151,7 +151,7 @@
       		Math.ceil( day_diff / 365 ) + " years ago";
       };
       
-      app({
+      var appExports = $.extend({
         showPath : function(funcname, docid) {
           // I wish this was shared with path.js...
           return '/'+[dbname, '_design', dname, '_show', funcname, docid].join('/')
@@ -191,10 +191,11 @@
         view : design.view,
         docForm : docForm,
         prettyDate : prettyDate
-      });
+      }, $.CouchApp.app);
+    appFun(appExports)
+      
     });
   };
 
-  $.CouchApp = $.CouchApp || init;
-
+  $.CouchApp.app = $.CouchApp.app || {};
 })(jQuery);

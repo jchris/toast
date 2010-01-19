@@ -22,6 +22,7 @@
       <p>Or if you're interested in improving or customizing <strong>Toast</strong>, join the <a href="http://jchrisa.net/toast/_design/toast/channel.html#Toasting">Toasting</a> channel.</p>
     </div>
     <div id="chat">
+      <div id="userCtx"></div>
       <form id="new_message" action="#">
         <p><label for="message">Message</label> <input type="text" name="message" value="" id="message" size=90 autocomplete="off">
         </p>
@@ -39,13 +40,21 @@
   <script src="/_utils/script/json2.js"></script>
   <script src="/_utils/script/jquery.js"></script>
   <script src="/_utils/script/jquery.couch.js"></script>
-  <script src="/_utils/script/jquery.cookies.js"></script>
   <script src="vendor/couchapp/jquery.couchapp.js"></script>
+  <script src="vendor/couchapp/jquery.couchapp.login.js"></script>
   <script src="html.js"></script>
   <script src="app.js"></script>
   <script type="text/javascript" charset="utf-8">
   var c_xhr;
     $.CouchApp(function(app) {
+      
+      // we should look up the users' login info first and require them to login before posting
+      
+      app.loginWidget('#userCtx', {
+        loggedin : function() {
+          alert("this could should connect to the channel")
+        }
+      })
       
       var cname = unescape(document.location.hash.replace(/^#/,''));
       joinChannel(app, cname);

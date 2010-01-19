@@ -28,19 +28,21 @@ function refreshView(app, cname) {
 function joinChannel(app, cname) {
   $('h1').text('Toast - ' + cname);
 
-  $("#author-name").val($.cookies.get("name"));
-  $("#author-email").val($.cookies.get("email"));
-  var authorRand =  $.cookies.get("rand") || Math.random().toString();
-  $("#author-url").val($.cookies.get("url"));
+  // $("#author-name").val($.cookies.get("name"));
+  // $("#author-email").val($.cookies.get("email"));
+  // var authorRand =  $.cookies.get("rand") || Math.random().toString();
+  // $("#author-url").val($.cookies.get("url"));
+  var authorRand =  Math.random().toString();
+  
   $("#new_message").submit(function() {
     var name, email, url, body;
     name = $("#author-name").val();
     email = $("#author-email").val();
     url = $("#author-url").val();
-    $.cookies.set("name", name);
-    $.cookies.set("email", email);
-    $.cookies.set("url", url);
-    $.cookies.set("rand", authorRand);
+    // $.cookies.set("name", name);
+    // $.cookies.set("email", email);
+    // $.cookies.set("url", url);
+    // $.cookies.set("rand", authorRand);
     body = $("#message").val();
     if (body) {
       var message = {
