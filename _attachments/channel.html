@@ -40,6 +40,7 @@
   <script src="/_utils/script/json2.js"></script>
   <script src="/_utils/script/jquery.js"></script>
   <script src="/_utils/script/jquery.couch.js"></script>
+  <script src="/_utils/script/sha1.js"></script>
   <script src="vendor/couchapp/jquery.couchapp.js"></script>
   <script src="vendor/couchapp/jquery.couchapp.login.js"></script>
   <script src="html.js"></script>
@@ -50,9 +51,9 @@
       
       // we should look up the users' login info first and require them to login before posting
       
-      app.loginWidget('#userCtx', {
-        loggedin : function() {
-          alert("this could should connect to the channel")
+      app.login.widget('#userCtx', {
+        loggedIn : function() {
+          alert("this will be called at each login")
         }
       })
       

@@ -28,6 +28,7 @@ function refreshView(app, cname) {
 function joinChannel(app, cname) {
   $('h1').text('Toast - ' + cname);
 
+// let's keep this stuff in a user preference document
   // $("#author-name").val($.cookies.get("name"));
   // $("#author-email").val($.cookies.get("email"));
   // var authorRand =  $.cookies.get("rand") || Math.random().toString();

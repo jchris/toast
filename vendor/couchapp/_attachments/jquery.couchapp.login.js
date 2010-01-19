@@ -1,8 +1,8 @@
 (function($) {
   // this creates a login/signup form
   // this handles the login / signup process. you can style the form with CSS.
-
-  $.CouchApp.app.login = function(opts) {
+  $.CouchApp.app.login = {};
+  $.CouchApp.app.login.session = function(opts) {
     $.couch.session({
       success : function(r) {
         var userCtx = r.userCtx;
@@ -17,39 +17,75 @@
       }
     });
   };
-  
-  $.CouchApp.app.loginWidget = function(divSelector, opts) {
+
+  $.CouchApp.app.login.widget = function(divSelector, opts) {
     var div = $(divSelector);
     // render the widget
     div.html('');
     
-    $.CouchApp.app.login({
-      loggedIn : function(r) {
-        div.html('Welcome <a target="_new" href="/_utils/document.html?'+
-          encodeURIComponent(r.info.user_db) +
-          '/org.couchdb.user%3A' + 
-          encodeURIComponent(r.userCtx.name)+'">' +
-          r.userCtx.name +
-          '</a>! <a href="#logout">Logout?</a>');
-        // setup the logout callback
-        if (opts.loggedIn) opts.loggedIn(r);
-        
-      },
-      loggedOut : function() {
-        div.html('<a href="#signup">Signup</a> or <a href="#login">Login</a>')
-        // setup login and signup callbacks
-        if (opts.loggedOut) opts.loggedOut(r);
-        
-      }
-    })
+    function refreshWidget() {
+      $.CouchApp.app.login.session({
+        loggedIn : function(r) {
+          div.html('Welcome <a target="_new" href="/_utils/document.html?'+
+            encodeURIComponent(r.info.user_db) +
+            '/org.couchdb.user%3A' + 
+            encodeURIComponent(r.userCtx.name)+'">' +
+            r.userCtx.name +
+            '</a>! <a href="#logout">Logout?</a>');
+          // setup the logout callback
+          $('a[href=#logout]', div).click(function() {
+            $.couch.logout({
+              success : refreshWidget
+            });
+            return false;
+          });
+          if (opts.loggedIn) opts.loggedIn(r);
+        },
+        loggedOut : function() {
+          div.html('<a href="#signup">Signup</a> or <a href="#login">Login</a>')
 
-    
-    // get the current session and draw the login form.
-    // yield the userctx
-    // have optional callbacks for
-    // loggedin
-    // loggedout
-    // adminparty
+          // setup login and signup callbacks
+          $('a[href=#login]', div).click(function() {
+            div.html('<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="Login"></form>');
+            $("input[name=name]", div).focus();
+            $('form', div).submit(function() {
+              var form = $(this);
+              $.couch.login({
+                name : $("input[name=name]", form).val(),
+                password : $("input[name=password]", form).val(),
+                success : refreshWidget
+              });
+              return false;
+            });
+            return false;
+          });
+          
+          $('a[href=#signup]', div).click(function() {
+            div.html('<form><label for="name">Name</label><input type="text" name="name" value=""><label for="password">Password</label><input type="password" name="password" value=""><input type="submit" value="Signup"></form>');
+            $("input[name=name]", div).focus();
+            $('form', div).submit(function() {
+              var form = $(this);
+              var name = $("input[name=name]", form).val();
+              var password = $("input[name=password]", form).val();
+              $.couch.signup({
+                name : name
+              }, password, {
+                success : function() {
+                  $.couch.login({
+                    name : name,
+                    password : password,
+                    success : refreshWidget
+                  });
+                }
+              });
+              return false;
+            });
+            return false;
+          });
+          if (opts.loggedOut) opts.loggedOut(r);
+        }
+      });      
+    }
+    refreshWidget();
   };
-
 })(jQuery);
