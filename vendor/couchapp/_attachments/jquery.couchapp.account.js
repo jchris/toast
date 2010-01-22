@@ -23,7 +23,7 @@ jQuery(function($) {
     
     // Initialize
     this.each(function() {
-      // setup the widget on the dom element
+      // setup the div on the dom element
     });
 
     // trigger the session refresh event
@@ -35,7 +35,11 @@ jQuery(function($) {
   $.CouchApp.account = {
     templates : {
       loggedIn : 
-        'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{name}}">{{name}}</a>! <a href="#logout">Logout?</a>'
+        'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
+      signupForm : 
+        '<form><label for="name">Name</label><input type="text" name="name" value=""><label for="password">Password</label><input type="password" name="password" value=""><input type="submit" value="Signup"></form>',
+      loginForm :
+        '<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="Login"></form>'
     }
   }
 
@@ -44,27 +48,33 @@ jQuery(function($) {
     signupForm : [function(options) {
       this.bind("org.couchapp.account.signupForm", function(e, selector) {
         var div = $(this);
-        div.html('<form><label for="name">Name</label><input type="text" name="name" value=""><label for="password">Password</label><input type="password" name="password" value=""><input type="submit" value="Signup"></form>');
+        div.html($.mustache($.CouchApp.account.templates.signupForm));
+         // can we get the main actions out of the loop.
+         // maybe a model for a form, that can handle setting up the submit event.
+         // you'd need to establish dom-naming conventions for even routing
+         // I think, like rails does.
         $("input[name=name]", div).focus();
         $('form', div).submit(function() {
           var form = $(this);
-          div.trigger("org.couchapp.account.doSignup", [options, $("input[name=name]", form).val(), $("input[name=password]", form).val()])
+          div.trigger("org.couchapp.account.doSignup", [options, 
+            $("input[name=name]", form).val(), 
+            $("input[name=password]", form).val()]);
           return false;
         });
       });
     }],
     loginForm : [function(options) {
-      this.bind("org.couchapp.account.loginForm", function(e, selector) {
-        var widget = $(this);
-        widget.html('<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="Login"></form>');
-        $("input[name=name]", widget).focus();
-        $('form', widget).submit(function() {
+      this.bind("org.couchapp.account.loginForm", function(e) {
+        var div = $(this);
+        div.html($.mustache($.CouchApp.account.templates.loginForm));
+        $("input[name=name]", div).focus();
+        $('form', div).submit(function() {
           var form = $(this);
           $.couch.login({
             name : $("input[name=name]", form).val(),
             password : $("input[name=password]", form).val(),
             success : function() {
-              widget.trigger("org.couchapp.account.refreshSession");
+              div.trigger("org.couchapp.account.refreshSession");
             }
           });
           return false;
@@ -94,14 +104,14 @@ jQuery(function($) {
     }],
     loggedOut : [function(options, userCtx) {
       this.bind("org.couchapp.account.loggedOut", function(e, selector) {
-        var widget = $(this);
-        widget.html('<a href="#signup">Signup</a> or <a href="#login">Login</a>');
+        var div = $(this);
+        div.html('<a href="#signup">Signup</a> or <a href="#login">Login</a>');
          $('a[href=#login]', this).click(function() {
-           widget.trigger("org.couchapp.account.loginForm", userCtx);
+           div.trigger("org.couchapp.account.loginForm", userCtx);
            return false;
          });
          $('a[href=#signup]', this).click(function() {
-           widget.trigger("org.couchapp.account.signupForm", userCtx);
+           div.trigger("org.couchapp.account.signupForm", userCtx);
            return false;
          });
       });
@@ -114,16 +124,16 @@ jQuery(function($) {
     // reload the session, trigger loggedIn or loggedOut
     refresh : [function(options) {
       this.bind("org.couchapp.account.refreshSession", function(e, selector) {
-        var widget = $(this);
+        var div = $(this);
         $.couch.session({
           success : function(r) {
             var userCtx = r.userCtx;
             if (userCtx.name) {
-              widget.trigger("org.couchapp.account.loggedIn", r);
+              div.trigger("org.couchapp.account.loggedIn", r);
             } else if (userCtx.roles.indexOf("_admin") != -1) {
-              widget.trigger("org.couchapp.account.adminParty", r);
+              div.trigger("org.couchapp.account.adminParty", r);
             } else {
-              widget.trigger("org.couchapp.account.loggedOut", r);
+              div.trigger("org.couchapp.account.loggedOut", r);
             };
           }
         });
@@ -131,7 +141,7 @@ jQuery(function($) {
     }],
     doSignup : [function(options) {
       this.bind("org.couchapp.account.doSignup", function(e, options, name, pass) {
-        var widget = $(this);
+        var div = $(this);
         $.couch.signup({
           name : name
         }, pass, {
@@ -140,7 +150,7 @@ jQuery(function($) {
               name : name,
               password : pass,
               success : function() {
-                widget.trigger("org.couchapp.account.refreshSession");
+                setTimeout(function(){div.trigger("org.couchapp.account.refreshSession")},50);
               }
             });
           }
