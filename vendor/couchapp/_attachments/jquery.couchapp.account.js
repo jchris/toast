@@ -39,8 +39,22 @@ jQuery(function($) {
       signupForm : 
         '<form><label for="name">Name</label><input type="text" name="name" value=""><label for="password">Password</label><input type="password" name="password" value=""><input type="submit" value="Signup"></form>',
       loginForm :
-        '<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="Login"></form>'
+        '<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="Login"></form>',
+      loggedOut :
+        '<a href="#signup">Signup</a> or <a href="#login">Login</a>'
     }
+  }
+
+
+  var app = {
+     loggedOut : {
+        template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
+        view : {},
+        selectors : {
+          'a[href=#login]' : ["loginForm"],
+          'a[href=#signup]' : ["signupForm"]
+        }
+      }
   }
 
   $.fn.couchappAccountWidget.base = {
@@ -85,6 +99,14 @@ jQuery(function($) {
     loggedIn : [function(options) {
       this.bind("org.couchapp.account.loggedIn", function(e, r) {
         // draw the welcome template
+        {
+          template : $.CouchApp.account.templates.loggedIn,
+          view : {},
+          selectors : {
+            'a[href=#logout]' : {click : "doLogout"}
+          }
+        }
+        
         var div = $(this);
         div.html($.mustache($.CouchApp.account.templates.loggedIn, {
           name : r.userCtx.name,
@@ -104,14 +126,26 @@ jQuery(function($) {
     }],
     loggedOut : [function(options, userCtx) {
       this.bind("org.couchapp.account.loggedOut", function(e, selector) {
+        {
+            template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
+            view : {},
+            selectors : {
+              // on click, trigger these events
+              // events are autoscoped by couchapp
+              "a[href=#login]" : {"click" : ["loginForm"]},
+              "a[href=#signup]" : {"click" : ["signupForm"]}
+            }
+          }
+        }
+        
         var div = $(this);
-        div.html('<a href="#signup">Signup</a> or <a href="#login">Login</a>');
+        div.html($.mustache($.CouchApp.account.templates.loggedOut));
          $('a[href=#login]', this).click(function() {
-           div.trigger("org.couchapp.account.loginForm", userCtx);
+           div.trigger("org.couchapp.account.loginForm");
            return false;
          });
          $('a[href=#signup]', this).click(function() {
-           div.trigger("org.couchapp.account.signupForm", userCtx);
+           div.trigger("org.couchapp.account.signupForm");
            return false;
          });
       });
