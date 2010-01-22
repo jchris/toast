@@ -32,30 +32,94 @@ jQuery(function($) {
     return this;
   };
 
-  $.CouchApp.account = {
-    templates : {
-      loggedIn : 
-        'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
-      signupForm : 
-        '<form><label for="name">Name</label><input type="text" name="name" value=""><label for="password">Password</label><input type="password" name="password" value=""><input type="submit" value="Signup"></form>',
-      loginForm :
-        '<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="Login"></form>',
-      loggedOut :
-        '<a href="#signup">Signup</a> or <a href="#login">Login</a>'
-    }
-  }
 
+
+  function namePassForm(action) {
+    return {
+      template :
+        '<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="{{action}}"></form>',
+      view : {action : action},
+      selectors : {
+        'form' : {
+          "submit" : [function() {
+            app.trigger("do"+action, [
+              $("input[name=name]", this).val(),
+              $("input[name=password]", this).val()]);
+            return false;
+          }]
+        }
+      },
+      setup : function() {
+        $("input[name=name]", this).focus();
+      }
+    };
+  };
 
   var app = {
-     loggedOut : {
-        template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
-        view : {},
-        selectors : {
-          'a[href=#login]' : ["loginForm"],
-          'a[href=#signup]' : ["signupForm"]
-        }
+    loggedIn : {
+      template : $.CouchApp.account.templates.loggedIn,
+      view : {},
+      selectors : {
+        'a[href=#logout]' : {click : ["doLogout"]}
       }
-  }
+    },
+    loggedOut : {
+      template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
+      view : {},
+      selectors : {
+        // on click, trigger these events
+        // events are autoscoped by couchapp
+        "a[href=#login]" : {"click" : ["loginForm"]},
+        "a[href=#signup]" : {"click" : ["signupForm"]}
+      }
+    }),
+    adminParty : function() {
+      alert("Admin party! Fix this in Futon before proceeding.");
+    },
+    loginForm : namePassForm("Login"),
+    signupForm : namePassForm("Signup"),
+    doLogout : function() {
+      $.couch.logout({
+        success : function() {
+          app.trigger("refreshSession");
+        }
+      });
+    },
+    doLogin : function(name, pass) {
+      $.couch.login({
+        name : name,
+        password : pass,
+        success : function() {
+          app.trigger("refreshSession")
+        }
+      });      
+    },
+    doSignup : function(name, pass) {
+      $.couch.signup({
+        name : name
+      }, pass, {
+        success : function() {
+          app.trigger("refreshSession")
+        }
+      });
+    },
+    refresh : function() {
+      $.couch.session({
+        success : function(r) {
+          var userCtx = r.userCtx;
+          if (userCtx.name) {
+            app.trigger("loggedIn");
+          } else if (userCtx.roles.indexOf("_admin") != -1) {
+            app.trigger("adminParty");
+          } else {
+            app.trigger("loggedOut");
+          };
+        }
+      });
+    };
+  };
+
+
 
   $.fn.couchappAccountWidget.base = {
     // signupForm and loginForm are triggered by events set by loggedOut
@@ -96,16 +160,17 @@ jQuery(function($) {
       });
     }],
     // loggedIn loggedOut and adminParty are triggered by the session xhr response
+    doLogout : function() {
+      $.couch.logout({
+        success : function() {
+          // div.trigger("org.couchapp.account.refreshSession");
+          app.trigger("refreshSession");
+        }
+      });
+    },
     loggedIn : [function(options) {
       this.bind("org.couchapp.account.loggedIn", function(e, r) {
         // draw the welcome template
-        {
-          template : $.CouchApp.account.templates.loggedIn,
-          view : {},
-          selectors : {
-            'a[href=#logout]' : {click : "doLogout"}
-          }
-        }
         
         var div = $(this);
         div.html($.mustache($.CouchApp.account.templates.loggedIn, {
@@ -125,19 +190,7 @@ jQuery(function($) {
       });
     }],
     loggedOut : [function(options, userCtx) {
-      this.bind("org.couchapp.account.loggedOut", function(e, selector) {
-        {
-            template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
-            view : {},
-            selectors : {
-              // on click, trigger these events
-              // events are autoscoped by couchapp
-              "a[href=#login]" : {"click" : ["loginForm"]},
-              "a[href=#signup]" : {"click" : ["signupForm"]}
-            }
-          }
-        }
-        
+      this.bind("org.couchapp.account.loggedOut", function(e, selector) {        
         var div = $(this);
         div.html($.mustache($.CouchApp.account.templates.loggedOut));
          $('a[href=#login]', this).click(function() {
