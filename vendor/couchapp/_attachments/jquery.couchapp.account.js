@@ -32,6 +32,13 @@ jQuery(function($) {
     return this;
   };
 
+  $.CouchApp.account = {
+    templates : {
+      loggedIn : 
+        'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{name}}">{{name}}</a>! <a href="#logout">Logout?</a>'
+    }
+  }
+
   $.fn.couchappAccountWidget.base = {
     // signupForm and loginForm are triggered by events set by loggedOut
     signupForm : [function(options) {
@@ -41,7 +48,7 @@ jQuery(function($) {
         $("input[name=name]", div).focus();
         $('form', div).submit(function() {
           var form = $(this);
-          div.trigger("org.couchapp.account.doSignup", options, $("input[name=name]", form).val(), $("input[name=password]", form).val())
+          div.trigger("org.couchapp.account.doSignup", [options, $("input[name=name]", form).val(), $("input[name=password]", form).val()])
           return false;
         });
       });
@@ -69,18 +76,16 @@ jQuery(function($) {
       this.bind("org.couchapp.account.loggedIn", function(e, r) {
         // draw the welcome template
         var div = $(this);
-        
-        div.html('Welcome <a target="_new" href="/_utils/document.html?'+
-          encodeURIComponent(r.info.authentication_db) +
-          '/org.couchdb.user%3A' + 
-          encodeURIComponent(r.userCtx.name)+'">' +
-          r.userCtx.name +
-          '</a>! <a href="#logout">Logout?</a>');
+        div.html($.mustache($.CouchApp.account.templates.loggedIn, {
+          name : r.userCtx.name,
+          uri_name : encodeURIComponent(r.userCtx.name),
+          auth_db : encodeURIComponent(r.info.authentication_db)
+        }));
         // setup the logout callback
         $('a[href=#logout]', div).click(function() {
           $.couch.logout({
             success : function() {
-              widget.trigger("org.couchapp.account.refreshSession");
+              div.trigger("org.couchapp.account.refreshSession");
             }
           });
           return false;
@@ -125,7 +130,8 @@ jQuery(function($) {
       });
     }],
     doSignup : [function(options) {
-      this.bind("org.couchapp.account.doSignup", function(e, name, pass) {
+      this.bind("org.couchapp.account.doSignup", function(e, options, name, pass) {
+        var widget = $(this);
         $.couch.signup({
           name : name
         }, pass, {
