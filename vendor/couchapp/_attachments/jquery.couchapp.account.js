@@ -55,24 +55,34 @@ jQuery(function($) {
     };
   };
 
-  var app = {
+  // illustrate how to override just parts of it
+  // for each key
+  // it's either a function or a template
+  // if it's a function bind it,
+  // if it's not a function, make the fun and bind it
+  $.couch.app.account = {
     loggedIn : {
-      template : $.CouchApp.account.templates.loggedIn,
+      template : 'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
       view : {},
-      selectors : {
+      events : {
         'a[href=#logout]' : {click : ["doLogout"]}
       }
     },
     loggedOut : {
       template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
       view : {},
+      div.html($.mustache($.CouchApp.account.templates.loggedIn, {
+        name : r.userCtx.name,
+        uri_name : encodeURIComponent(r.userCtx.name),
+        auth_db : encodeURIComponent(r.info.authentication_db)
+      }));
       selectors : {
         // on click, trigger these events
         // events are autoscoped by couchapp
         "a[href=#login]" : {"click" : ["loginForm"]},
         "a[href=#signup]" : {"click" : ["signupForm"]}
       }
-    }),
+    },
     adminParty : function() {
       alert("Admin party! Fix this in Futon before proceeding.");
     },
@@ -116,7 +126,7 @@ jQuery(function($) {
           };
         }
       });
-    };
+    }
   };
 
 
