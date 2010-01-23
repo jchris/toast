@@ -10,6 +10,21 @@ jQuery.fn.setupExtras = function(setup, options) {
   }
 };
 
+jQuery.fn.bindEvents = function(events, options) {
+  function bindEvent(fun) {
+    
+  }
+  
+  for(event in events) {
+    var self = this;
+    if (events[event].mustache) {
+      // render the template with the options
+    } else {
+      setup[extra].call(self, options);
+    }
+  }
+};
+
 jQuery(function($) {  
   var $$ = function(param) {
     var id = $.data($(param)[0]);
@@ -63,22 +78,21 @@ jQuery(function($) {
   $.couch.app.account = {
     loggedIn : {
       template : 'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
-      view : {},
+      view : function(e, r) {
+        return {
+          name : r.userCtx.name,
+          uri_name : encodeURIComponent(r.userCtx.name),
+          auth_db : encodeURIComponent(r.info.authentication_db)
+        };
+      },
       events : {
         'a[href=#logout]' : {click : ["doLogout"]}
       }
     },
     loggedOut : {
       template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
-      view : {},
-      div.html($.mustache($.CouchApp.account.templates.loggedIn, {
-        name : r.userCtx.name,
-        uri_name : encodeURIComponent(r.userCtx.name),
-        auth_db : encodeURIComponent(r.info.authentication_db)
-      }));
       selectors : {
         // on click, trigger these events
-        // events are autoscoped by couchapp
         "a[href=#login]" : {"click" : ["loginForm"]},
         "a[href=#signup]" : {"click" : ["signupForm"]}
       }
@@ -129,6 +143,6 @@ jQuery(function($) {
     }
   };
 
-  $.couch.app.account
-
+  $("#userCtx").bindEvents($.couch.app.account)
+  $("#userCtx").trigger("couch.app.account.refresh")
 });
