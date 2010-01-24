@@ -2,7 +2,7 @@
 // Apache 2.0 license
 
 jQuery(function($) {
-  function namePassForm(action) {
+  function makeNamePassForm(action) {
     // template for signup and login forms. This fun creates the template 
     // which is executed when the right event is triggered
     return {
@@ -53,8 +53,10 @@ jQuery(function($) {
     adminParty : function() {
       alert("Admin party! Fix this in Futon before proceeding.");
     },
-    loginForm : namePassForm("Login"),
-    signupForm : namePassForm("Signup"),
+    // these are called onload, so once this plugin is loaded,
+    // they can be modified as declarative structures
+    loginForm : makeNamePassForm("Login"),
+    signupForm : makeNamePassForm("Signup"),
     doLogout : function() {
       var app = $(this);
       $.couch.logout({
