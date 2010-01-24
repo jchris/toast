@@ -5,14 +5,17 @@
     <link rel="stylesheet" href="style/main.css" type="text/css">
   </head>
   <body>
-    <h1>Toast - Join a Channel (or Create one):</h1>
+    <h1>Welcome to Toast</h1>
     <div id="userCtx"></div>
+    <p><a href="http://github.com/jchris/toast">Download the Toast source code here.</a></p>
+    <div id="channel">
+      <!-- start with a list of channels that links to each -->
+    </div>
+    <div id="chat"></div>
     <form id="new_channel" action="#">
       <p><label for="name">Channel Name</label> <input type="text" name="name" value="" id="name"></p>
       <p><input type="submit" value="Go &rarr;"></p>
     </form>
-    <p><a href="http://github.com/jchris/toast">Download the Toast source code here.</a></p>
-    <ul id="channels"></ul>
   </body>
   <script src="/_utils/script/json2.js"></script>
   <script src="/_utils/script/jquery.js"></script>
@@ -21,30 +24,8 @@
   <script src="vendor/couchapp/jquery.couch.app.account.js"></script>
   <script src="vendor/couchapp/jquery.evently.js"></script>
   <script src="vendor/couchapp/jquery.mustache.js"></script>
+  <script src="script/sammy.js"></script>
   <script src="html.js"></script>
   <script src="app.js"></script>
-  
-  <script type="text/javascript" charset="utf-8">
-    $.couch.app(function(app) {
-      $("#userCtx").evently($.couch.app.account);
-      $("#userCtx").trigger("refresh");
-      
-      app.view("channels",{group_level: 1, success: function(json) {
-        $("#channels").html(json.rows.map(function(row) {
-          return '<li><a href="channel.html#'+ 
-          encodeURIComponent(row.key[0])
-          +'">'+escapeHTML(row.key[0])+'</a> '+row.value+' messages</li>';
-        }).join(''));
-      }});
-      
-      $("#new_channel").submit(function() {
-        var cname = $('#name').val();
-        // return false;
-        $('body').append('<a href="channel.html#'+encodeURIComponent(cname)+'">redirect</a>');
-        var absurl = $('body a:last')[0].href;
-        document.location = absurl;
-        return false;
-      });
-    });
-  </script>
+
 </html>

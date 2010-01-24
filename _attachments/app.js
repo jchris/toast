@@ -1,3 +1,59 @@
+$.couch.app(function(app) {
+  // setup the account widget
+  // first we customize a template for Toast
+  $.couch.app.account.loggedIn.template = 'Toasty ' + $.couch.app.account.loggedIn.template;
+  // now launch the evently widget.
+  $("#userCtx").evently($.couch.app.account);
+  $("#userCtx").trigger("refresh");
+  
+  $("#new_channel").submit(function() {
+    var cname = $('#name').val();
+    // return false;
+    $('body').append('<a href="channel.html#'+encodeURIComponent(cname)+'">redirect</a>');
+    var absurl = $('body a:last')[0].href;
+    document.location = absurl;
+    return false;
+  });
+  var chatApp = $.sammy(function() {
+    this.debug = true;
+    this.element_selector = '#chat';
+
+    // populate the default channel list
+    // link to channels
+
+    this.get("#/", function() {
+      this.log("fucking a")
+      // todo use mustache.js for partials
+      app.view("channels",{group_level: 1, success: function(json) {
+        $("#chat").append('<ul id="channels"></ul>');
+        $("#chat #channels").html(json.rows.map(function(row) {
+          return '<li><a href="#/channel/'+ 
+          encodeURIComponent(row.key[0])
+          +'">'+escapeHTML(row.key[0])+'</a> '+row.value+' messages</li>';
+        }).join(''));
+      }});
+    });
+
+    // this.get('#/', function(e) {
+    //   showLoader();
+    //   this.partial('templates/index.html.erb', function(t) {
+    //     this.app.swap(t);
+    //     Preso.all(function(presos) {
+    //       e.presos = presos;
+    //       e.partial('templates/_presos.html.erb', function(p) {
+    //         $('#presos').append(p);
+    //         Slide.setCSS({width: 300, height: 300});
+    //       });
+    //     });
+    //   });
+    // });
+
+  });
+  
+  chatApp.run('#/');
+  
+});
+
 
 function refreshView(app, cname) {
   app.view("channels",{
