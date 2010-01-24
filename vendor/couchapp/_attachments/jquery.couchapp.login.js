@@ -1,8 +1,8 @@
 (function($) {
   // this creates a login/signup form
   // this handles the login / signup process. you can style the form with CSS.
-  $.CouchApp.app.login = {};
-  $.CouchApp.app.login.session = function(opts) {
+  $.couch.app.login = {};
+  $.couch.app.login.session = function(opts) {
     $.couch.session({
       success : function(r) {
         var userCtx = r.userCtx;
@@ -18,13 +18,13 @@
     });
   };
 
-  $.CouchApp.app.login.widget = function(divSelector, opts) {
+  $.couch.app.login.widget = function(divSelector, opts) {
     var div = $(divSelector);
     // render the widget
     div.html('');
     
     function refreshWidget() {
-      $.CouchApp.app.login.session({
+      $.couch.app.login.session({
         loggedIn : function(r) {
           div.html('Welcome <a target="_new" href="/_utils/document.html?'+
             encodeURIComponent(r.info.authentication_db) +

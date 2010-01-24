@@ -40,12 +40,12 @@ jQuery.fn.evently = function(events, options) {
   }
   
   function templated(ctx, name, e) {
-    console.log("bound "+name)
+    console.log("binding template: "+name)
     ctx.bind(name, function() {
-      console.log("templating "+name);
+      console.log("running template "+name);
       var args = $.makeArray(arguments);
       var me = $(this), selectors;
-      me.html(templateFun(
+      me.html($.mustache(
         runIfFun(me, e.template, args),
         runIfFun(me, e.view, args), 
         runIfFun(me, e.partials, args)));
@@ -60,7 +60,6 @@ jQuery.fn.evently = function(events, options) {
   };
   
   var self = $(this);
-  var templateFun = $.mustache;
 
   forIn(events, function(name, e) {
     if (e.template) {

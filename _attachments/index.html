@@ -6,6 +6,7 @@
   </head>
   <body>
     <h1>Toast - Join a Channel (or Create one):</h1>
+    <div id="userCtx"></div>
     <form id="new_channel" action="#">
       <p><label for="name">Channel Name</label> <input type="text" name="name" value="" id="name"></p>
       <p><input type="submit" value="Go &rarr;"></p>
@@ -17,14 +18,15 @@
   <script src="/_utils/script/jquery.js"></script>
   <script src="/_utils/script/jquery.couch.js"></script>
   <script src="vendor/couchapp/jquery.couch.app.js"></script>
-  <script src="vendor/couchapp/jquery.evently.js"></script>
   <script src="vendor/couchapp/jquery.couch.app.account.js"></script>
+  <script src="vendor/couchapp/jquery.evently.js"></script>
+  <script src="vendor/couchapp/jquery.mustache.js"></script>
   <script src="html.js"></script>
   <script src="app.js"></script>
   
   <script type="text/javascript" charset="utf-8">
-    $.CouchApp(function(app) {
-      $("#userCtx").evently($.couch.app.account)
+    $.couch.app(function(app) {
+      $("#userCtx").evently($.couch.app.account);
       $("#userCtx").trigger("refresh");
       
       app.view("channels",{group_level: 1, success: function(json) {

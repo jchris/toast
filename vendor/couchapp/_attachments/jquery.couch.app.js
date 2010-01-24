@@ -13,7 +13,7 @@
 // Usage: The passed in function is called when the page is ready.
 // CouchApp passes in the app object, which takes care of linking to 
 // the proper database, and provides access to the CouchApp helpers.
-// $.CouchApp(function(app) {
+// $.couch.app(function(app) {
 //    app.db.view(...)
 //    ...
 // });
@@ -41,7 +41,7 @@
 
   var login;
   
-  $.CouchApp = $.CouchApp || function(appFun) {
+  $.couch.app = $.couch.app || function(appFun) {
     $(function() {
       var dbname = document.location.href.split('/')[3];
       var dname = unescape(document.location.href).split('/')[5];
@@ -191,11 +191,11 @@
         view : design.view,
         docForm : docForm,
         prettyDate : prettyDate
-      }, $.CouchApp.app);
+      }, $.couch.app.app);
     appFun(appExports)
       
     });
   };
-
-  $.CouchApp.app = $.CouchApp.app || {};
+  // legacy support. $.CouchApp is deprecated, please use $.couch.app
+  $.CouchApp = $.couch.app;
 })(jQuery);
