@@ -9,12 +9,18 @@ jQuery(function($) {
       view : {action : action},
       selectors : {
         form : {
-          submit : function() {
-            app.trigger("do"+action, [
-              $("input[name=name]", this).val(),
-              $("input[name=password]", this).val()]);
+          submit : [function(e) {
+            e.preventDefault();
+            var self = $(this), 
+              name = $("input[name=name]", this).val(),
+              pass = $("input[name=password]", this).val();
+              
+            console.log(arguments)
+            console.log("name "+name +" pass "+pass)
+            console.log("submit "+action);
+            $(this).trigger("do"+action, [name, pass]);
             return false;
-          }
+          }]
         }
       },
       after : function() {
@@ -31,7 +37,7 @@ jQuery(function($) {
   $.couch.app = $.couch.app || {};
   $.couch.app.account = {
     loggedIn : {
-      template : 'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
+      template : 'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{uri_name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
       view : function(e, r) {
         return {
           name : r.userCtx.name,
@@ -46,9 +52,8 @@ jQuery(function($) {
     loggedOut : {
       template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
       selectors : {
-        // on click, trigger these events
-        "a[href=#login]" : {"click" : ["loginForm"]},
-        "a[href=#signup]" : {"click" : ["signupForm"]}
+        "a[href=#signup]" : {click : ["signupForm"]},
+         "a[href=#login]" : {click : ["loginForm"]}
       }
     },
     adminParty : function() {
@@ -63,12 +68,16 @@ jQuery(function($) {
         }
       });
     },
-    doLogin : function(name, pass) {
+    doLogin : function(e, name, pass) {
+      console.log("doLogin")
+      console.log(arguments)
+      var me = $(this);
       $.couch.login({
         name : name,
         password : pass,
-        success : function() {
-          app.trigger("refreshSession")
+        success : function(r) {
+          console.log(r)
+          me.trigger("refreshSession")
         }
       });      
     },
@@ -77,7 +86,7 @@ jQuery(function($) {
         name : name
       }, pass, {
         success : function() {
-          app.trigger("refreshSession")
+          $(this).trigger("refreshSession")
         }
       });
     },

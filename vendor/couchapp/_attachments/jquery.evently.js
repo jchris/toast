@@ -10,41 +10,64 @@ jQuery.fn.evently = function(events, options) {
     }
   }
   
-  function applySelectors(me, selectors) {
-    var s, evs;
-    for (var selector in selectors) {
-      s = selectors[selector];
-      for (var name in s) {
-        evs = s[name];
-        $(s, me).bind(name, function() {
-          for (var i=0; i < evs.length; i++) {
-            this.trigger(evs[i]);
-          }
-        });
+  function forIn(obj, fun) {
+    var name;
+    for (name in obj) {
+      if (obj.hasOwnProperty(name)) {
+        fun(name, obj[name])
       }
     }
+  };
+  
+  function applySelectors(me, selectors) {
+    forIn(selectors, function(selector, bindings) {
+      forIn(bindings, function(name, evs) {
+        console.log("bind "+name+" to "+selector+" to trigger "+evs);
+        $(selector, me).bind(name, function() {
+          var ev, self = $(this);
+          for (var i=0; i < evs.length; i++) {
+            ev = evs[i];
+            if (typeof ev == "function") {
+              ev.apply(me, arguments);
+            } else {
+              self.trigger(ev);              
+            }
+          }
+          return false;
+        });
+      });
+    });
   }
   
   var self = $(this);
   var templateFun = $.mustache;
 
-  // TODO switch these for loops to forEach calls
-  for(var event in events) {
-    if (events[event].template) {
-      // render the template with the options
-      self.bind(event, function(ev, args) {
-        var ename = ev.type;
-        var e = events[ename];
-        console.log("templating "+ename);
-        var me = $(this), 
-          selectors = eventField(me, e.selectors);
+  forIn(events, function(name, action) {
+    if (action.template) {
+      self.bind(name, function(ev, args) {
+        var e = events[name];
+        console.log("templating "+name);
+        var me = $(this), selectors;
         me.html(templateFun(eventField(me, e.template, args), eventField(me, e.view, args), eventField(me, e.partials, args)));
+        selectors = eventField(me, e.selectors)
         if (selectors) {
           applySelectors(me, selectors);
         }
+        if (e.after) {
+          e.after.call(me) // todo we should send more args?
+        }
       });
-    } else if (typeof events[event] == "function") {
-      self.bind(event, events[event]);
-    }
-  }
+    } else if (typeof action == "function") {
+      // if it's a function...
+      self.bind(name, action);
+    } // else if (action.length) {
+     //      // an array
+     //      var act;
+     //      for (var i=0; i < action.length; i++) {
+     //        act = action[i]
+     //        // handle recursively
+     //      };
+     //      
+     //    }
+  });
 };
