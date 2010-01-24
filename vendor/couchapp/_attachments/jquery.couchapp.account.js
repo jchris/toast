@@ -38,7 +38,8 @@ jQuery(function($) {
   $.couch.app.account = {
     loggedIn : {
       template : 'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{uri_name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
-      view : function(e, r) {
+      view : function(r) {
+        console.log("logged in view")
         return {
           name : r.userCtx.name,
           uri_name : encodeURIComponent(r.userCtx.name),
@@ -62,6 +63,7 @@ jQuery(function($) {
     loginForm : namePassForm("Login"),
     signupForm : namePassForm("Signup"),
     doLogout : function() {
+      var app = $(this);
       $.couch.logout({
         success : function() {
           app.trigger("refreshSession");
@@ -71,13 +73,13 @@ jQuery(function($) {
     doLogin : function(e, name, pass) {
       console.log("doLogin")
       console.log(arguments)
-      var me = $(this);
+      var app = $(this);
       $.couch.login({
         name : name,
         password : pass,
         success : function(r) {
           console.log(r)
-          me.trigger("refreshSession")
+          app.trigger("refreshSession")
         }
       });      
     },
@@ -97,7 +99,8 @@ jQuery(function($) {
         success : function(r) {
           var userCtx = r.userCtx;
           if (userCtx.name) {
-            app.trigger("loggedIn");
+            console.log("trigger loggedIn")
+            app.trigger("loggedIn", [r]);
           } else if (userCtx.roles.indexOf("_admin") != -1) {
             app.trigger("adminParty");
           } else {
