@@ -38,7 +38,7 @@ jQuery(function($) {
   $.couch.app.account = {
     loggedIn : {
       template : 'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{uri_name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
-      view : function(r) {
+      view : function(e, r) {
         console.log("logged in view")
         return {
           name : r.userCtx.name,
@@ -66,7 +66,7 @@ jQuery(function($) {
       var app = $(this);
       $.couch.logout({
         success : function() {
-          app.trigger("refreshSession");
+          app.trigger("refresh");
         }
       });
     },
@@ -79,16 +79,17 @@ jQuery(function($) {
         password : pass,
         success : function(r) {
           console.log(r)
-          app.trigger("refreshSession")
+          app.trigger("refresh")
         }
       });      
     },
-    doSignup : function(name, pass) {
+    doSignup : function(e, name, pass) {
+      var app = $(this);
       $.couch.signup({
         name : name
       }, pass, {
         success : function() {
-          $(this).trigger("refreshSession")
+          app.trigger("doLogin", [name, pass]);
         }
       });
     },

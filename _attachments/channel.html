@@ -60,7 +60,7 @@
       //   }
       // });
       
-      $.couch.app.account.loggedIn.template = 'Toasty welcome, <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{name}}">{{name}}</a>! <a href="#logout">Logout?</a>';
+      $.couch.app.account.loggedIn.template = 'Toasty welcome, <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{uri_name}}">{{name}}</a>! <a href="#logout">Logout?</a>';
 
       $("#userCtx").evently($.couch.app.account)
       $("#userCtx").trigger("refresh");
@@ -76,8 +76,6 @@
           cname=newname
         }
       }, 500);
-      
-      $('#slideplayer')[0].innerHTML = '<div style="width:325px;height:255px;text-align:left" id="__ss_1357222"><a style="font:14px Helvetica,Arial,Sans-serif;display:block;margin:12px 0 3px 0;text-decoration:underline;" href="http://www.slideshare.net/jchrisa/couchdb-to-the-edge?type=powerpoint" title="CouchDB To The Edge">CouchDB To The Edge</a><object style="margin:0px" width="325" height="255"><param name="movie" value="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=to-the-edge-090428093711-phpapp02&rel=0&stripped_title=couchdb-to-the-edge" /><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><embed src="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=to-the-edge-090428093711-phpapp02&rel=0&stripped_title=couchdb-to-the-edge" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="325" height="255"></embed></object></div>';
 
     });
   </script>
