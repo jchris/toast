@@ -1,6 +1,9 @@
-// a login couchapp helper for CouchDB
-// Apache 2.0 license
-
+// Thank you for using $.couch.app.account
+// An $.evently-based login and signup helper for CouchDB.
+// 
+// Usage: (see Toast's index.html)
+// 
+// 
 jQuery(function($) {
   function makeNamePassForm(action) {
     // template for signup and login forms. This fun creates the template 
