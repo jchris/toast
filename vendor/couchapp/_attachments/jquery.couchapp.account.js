@@ -3,6 +3,8 @@
 
 jQuery(function($) {
   function namePassForm(action) {
+    // template for signup and login forms. This fun creates the template 
+    // which is executed when the right event is triggered
     return {
       template :
         '<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="{{action}}"></form>',
@@ -10,14 +12,8 @@ jQuery(function($) {
       selectors : {
         form : {
           submit : [function(e) {
-            e.preventDefault();
-            var self = $(this), 
-              name = $("input[name=name]", this).val(),
-              pass = $("input[name=password]", this).val();
-              
-            console.log(arguments)
-            console.log("name "+name +" pass "+pass)
-            console.log("submit "+action);
+            var name = $("input[name=name]", this).val(),
+              pass = $("input[name=password]", this).val();              
             $(this).trigger("do"+action, [name, pass]);
             return false;
           }]
@@ -31,15 +27,19 @@ jQuery(function($) {
 
   // illustrate how to override just parts of it
   // for each key
-  // it's either a function or a template
-  // if it's a function bind it,
-  // if it's not a function, make the fun and bind it
   $.couch.app = $.couch.app || {};
   $.couch.app.account = {
+    loggedOut : {
+      template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
+      selectors : {
+        "a[href=#signup]" : {click : ["signupForm"]},
+         "a[href=#login]" : {click : ["loginForm"]}
+      }
+    },
     loggedIn : {
-      template : 'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{uri_name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
+      template : 
+        'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{uri_name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
       view : function(e, r) {
-        console.log("logged in view")
         return {
           name : r.userCtx.name,
           uri_name : encodeURIComponent(r.userCtx.name),
@@ -48,13 +48,6 @@ jQuery(function($) {
       },
       selectors : {
         'a[href=#logout]' : {click : ["doLogout"]}
-      }
-    },
-    loggedOut : {
-      template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
-      selectors : {
-        "a[href=#signup]" : {click : ["signupForm"]},
-         "a[href=#login]" : {click : ["loginForm"]}
       }
     },
     adminParty : function() {
@@ -71,14 +64,11 @@ jQuery(function($) {
       });
     },
     doLogin : function(e, name, pass) {
-      console.log("doLogin")
-      console.log(arguments)
       var app = $(this);
       $.couch.login({
         name : name,
         password : pass,
         success : function(r) {
-          console.log(r)
           app.trigger("refresh")
         }
       });      
@@ -94,18 +84,15 @@ jQuery(function($) {
       });
     },
     refresh : function() {
-      console.log("run refresh")
       var app = $(this);
       $.couch.session({
         success : function(r) {
           var userCtx = r.userCtx;
           if (userCtx.name) {
-            console.log("trigger loggedIn")
             app.trigger("loggedIn", [r]);
           } else if (userCtx.roles.indexOf("_admin") != -1) {
             app.trigger("adminParty");
           } else {
-            console.log("trigger loggedout")
             app.trigger("loggedOut");
           };
         }
