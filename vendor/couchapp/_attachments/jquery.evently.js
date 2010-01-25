@@ -36,7 +36,7 @@ jQuery.fn.evently = function(events, options) {
   function applySelectors(me, selectors) {
     forIn(selectors, function(selector, bindings) {
       forIn(bindings, function(name, evs) {
-        console.log("bind "+name+" to "+selector+" to trigger "+evs);
+        // console.log("bind "+name+" to "+selector+" to trigger "+evs);
         $(selector, me).bind(name, function() {
           var ev, self = $(this);
           for (var i=0; i < evs.length; i++) {
@@ -54,9 +54,9 @@ jQuery.fn.evently = function(events, options) {
   }
   
   function templated(ctx, name, e) {
-    console.log("binding template: "+name)
+    // console.log("binding template: "+name)
     ctx.bind(name, function() {
-      console.log("running template "+name);
+      // console.log("running template "+name);
       var args = $.makeArray(arguments);
       var me = $(this), selectors;
       me.html($.mustache(

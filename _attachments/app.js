@@ -1,8 +1,10 @@
 $.couch.app(function(app) {
   var userProfile = {}, currentChannel = null, since_seq = 0;  
   
+  // TODO package these logged in and logged as part of the userprofile code
   function loggedIn(e, resp) {
     // get the user profile doc
+    // todo loggedIn should just trigger the user profile event
     app.view("userProfile", {
       key : resp.userCtx.name, success : function(view) {
         if (view.rows.length == 0) {
@@ -31,18 +33,17 @@ $.couch.app(function(app) {
     // copy gravatar to profile doc:
     // http://stackoverflow.com/questions/934012/get-image-data-in-javascript
   };
-  
-  
   function loggedOut(e) {
     userProfile = {};
     $("#new_message").trigger("newProfile");
   };
+  
   // setup the account widget
   // first we customize a template for Toast
   $.couch.app.account.loggedIn.template = 'Toasty ' + $.couch.app.account.loggedIn.template;
   // now launch the evently widget.
-  $.couch.app.account.loggedIn = [$.couch.app.account.loggedIn, loggedIn]
-  
+  $.couch.app.account.loggedIn = [$.couch.app.account.loggedIn, loggedIn];
+  $.couch.app.account.loggedOut = [$.couch.app.account.loggedOut, loggedOut];
   $("#userCtx").evently($.couch.app.account);
   
   // todo move this to an evently handler
@@ -116,13 +117,14 @@ $.couch.app(function(app) {
   function latestMessages(cname, fun) {
     app.view("channels",{
       reduce: false, 
-      startkey : [cname, since_seq+1],
-      endkey : [cname,{}],
+      startkey : [cname,{}],
+      endkey : [cname, since_seq+1],
       limit : 25,
+      descending : true,
       success: function(json) {
         var new_rows = $.grep(json.rows, function(row) {
           return (row.key[1] > since_seq);
-        });
+        }).reverse();
         if (new_rows.length > 0) {
           since_seq = new_rows[new_rows.length - 1].key[1];
           fun(new_rows);
@@ -149,6 +151,8 @@ $.couch.app(function(app) {
         + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">'+( m.date || 'perma')+'</a><br class="clear"/></li>';
       $("#messages").append(li);
     });
+    // scroll down
+    $("body").scrollTo($("body").height());
   };
   
   var templates = {

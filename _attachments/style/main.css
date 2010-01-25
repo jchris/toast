@@ -1,18 +1,47 @@
-/* add styles here */
-
-
 body {
   font-family:Optima, "Palatino Linotype", Garamond, Georgia, serif;
-/*  background:#8ab;
-*/}
+  margin:0;
+  padding:0;
+}
+
+h1 {
+  margin:0;
+}
 
 h2 {
   color:#222;
 }
 
+#header {
+  padding:4px;
+  background:#bbb;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+}
+
+#userCtx {
+  float:right;
+}
+
+#content {
+  background:#eee;
+  margin-top:4em;
+  margin-bottom:8em;
+  clear:both;
+}
+
+#footer {
+  background:#8ab;
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+}
+
 #chat {
   width:65%;
-  background:#eee;
 }
 
 #sidebar {
@@ -22,6 +51,8 @@ h2 {
 
 ul#messages {
   list-style: none;
+  margin:0;
+  padding:2px;
 }
 
 .clear {
@@ -30,6 +61,8 @@ ul#messages {
 
 ul#messages li {
   padding:4px;
+  margin:4px;
+  background:#fff;
 }
 
 ul#messages img.gravatar {
