@@ -3,6 +3,8 @@
 // 
 // Usage: (see Toast's index.html)
 // 
+//   $("#userCtx").evently($.couch.app.account);
+//   $("#userCtx").trigger("refresh");
 // 
 jQuery(function($) {
   function makeLoginOrSignupFormHandler(action) {
