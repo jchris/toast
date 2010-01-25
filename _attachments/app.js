@@ -1,13 +1,14 @@
 $.couch.app(function(app) {
-  var userProfile = {}, currentChannel = null;  
+  var userProfile = {}, currentChannel = null, since_seq = 0;  
   
   function loggedIn(e, resp) {
     // get the user profile doc
-    app.view("user-profiles", {
+    app.view("userProfile", {
       key : resp.userCtx.name, success : function(view) {
         if (view.rows.length == 0) {
           // no profile yet        
           userProfile = {
+            type : "userProfile",
             authorRand :  Math.random().toString(),
             userCtx : resp.userCtx
           };
@@ -25,7 +26,7 @@ $.couch.app(function(app) {
           alert("More than one profile for "+resp.userCtx.name+". Please resolve.")
         }
     }});
-    // prefill the form
+    // todo
     // preview gravatar
     // copy gravatar to profile doc:
     // http://stackoverflow.com/questions/934012/get-image-data-in-javascript
@@ -57,8 +58,6 @@ $.couch.app(function(app) {
   $("#new_message").evently({
     submit : [function(e) {
       e.preventDefault();
-      // maybe update userProfile doc
-      // create doc if needed
       var name, email, url;
       name = $("#author-name").val();
       email = $("#author-email").val();
@@ -66,7 +65,7 @@ $.couch.app(function(app) {
       if (name == userProfile.name &&
         email == userProfile.email &&
         url == userProfile.url) {
-          // no changes, ignore
+        // no changes, ignore
       } else {
         userProfile.name = name;
         userProfile.email = email;
@@ -112,6 +111,45 @@ $.couch.app(function(app) {
       $("#author-url", this).val(userProfile.url);
     }
   });
+  
+
+  function latestMessages(cname, fun) {
+    app.view("channels",{
+      reduce: false, 
+      startkey : [cname, since_seq+1],
+      endkey : [cname,{}],
+      limit : 25,
+      success: function(json) {
+        var new_rows = $.grep(json.rows, function(row) {
+          return (row.key[1] > since_seq);
+        });
+        if (new_rows.length > 0) {
+          since_seq = new_rows[new_rows.length - 1].key[1];
+          fun(new_rows);
+        }
+      }
+    });
+  };
+  
+  function appendMessages(messages) {
+    messages.forEach(function(row) {
+      // todo use mustache
+      var m = row.value;
+      var li = '<li>'
+        + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
+        + (m.author.url ? 
+          '<a href="'+
+          escapeHTML(m.author.url) 
+          +'">'+
+          m.author.name
+          +'</a>'
+          : m.author.name)
+        + "</strong>: "
+        + linkify(m.body)
+        + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">'+( m.date || 'perma')+'</a><br class="clear"/></li>';
+      $("#messages").append(li);
+    });
+  };
   
   var templates = {
     channel_list : '<ul id="channels"></ul>', // todo use partial
@@ -171,6 +209,8 @@ $.couch.app(function(app) {
     this.get("#/channel/:channel", function(e) {
       var channel = this.params.channel;
       currentChannel = channel;
+      since_seq = 0;
+      
       $('h1').html($.mustache(templates.channel.title, {
         channel : channel
       }));
@@ -183,32 +223,15 @@ $.couch.app(function(app) {
       // view channel and append new junks
       // setup changes consumer to keep doing that
       
-      joinChannel(app, this.params.channel);
+      latestMessages(currentChannel, appendMessages);
+      connectToChanges(app, function() {
+        latestMessages(currentChannel, appendMessages);
+      });
+      
       // setup footer
       $("#new_channel").hide();
       $("#new_message").show();
     });
-
-    function joinChannel(app, cname) {
-
-    // let's keep this stuff in a user preference document
-      // $("#author-name").val($.cookies.get("name"));
-      // $("#author-email").val($.cookies.get("email"));
-      // var authorRand =  $.cookies.get("rand") || Math.random().toString();
-      // $("#author-url").val($.cookies.get("url"));
-
-      // attach 2 events to this form submit,
-      // the sender but first save some data
-      // to the profile doc
-
-
-      // this is where we hang on the continuous _changes api
-      // get the raw xhr
-      refreshView(app, cname);
-      connectToChanges(app, function() {
-        refreshView(app, cname);
-      });
-    };
 
   });
   
@@ -217,31 +240,7 @@ $.couch.app(function(app) {
 });
 
 
-function refreshView(app, cname) {
-  app.view("channels",{
-    reduce: false, 
-    startkey : [cname,{}],
-    endkey : [cname],
-    descending: true,
-    limit : 25,
-    success: function(json) {
-    $("#messages").html(json.rows.map(function(row) {
-      var m = row.value;
-      return '<li>'
-        + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
-        + (m.author.url ? 
-          '<a href="'+
-          escapeHTML(m.author.url) 
-          +'">'+
-          m.author.name
-          +'</a>'
-          : m.author.name)
-        + "</strong>: "
-        + linkify(m.body)
-        + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">'+( m.date || 'perma')+'</a><br class="clear"/></li>';
-    }).join(''));
-  }});
-};
+
 
 function connectToChanges(app, fun) {
   function resetHXR(x) {
