@@ -5,12 +5,16 @@
 // 
 // 
 jQuery(function($) {
-  function makeNamePassForm(action) {
-    // template for signup and login forms. This fun creates the template 
-    // which is executed when the right event is triggered
+  function makeLoginOrSignupFormHandler(action) {
+    // A tiny bit of metaprogramming to set up the evently handlers (with
+    // mustache) for the signup and login forms. The evently template is
+    // returned as a static object, and interpreted when triggered (like 
+    // the other evently templates stored in $.couch.app.account).
     return {
       template :
-        '<form><label for="name">Name</label> <input type="text" name="name" value=""><label for="password">Password</label> <input type="password" name="password" value=""><input type="submit" value="{{action}}"></form>',
+        '<form><label for="name">Name</label> <input type="text" name="name" value="">'
+        + '<label for="password">Password</label> <input type="password" name="password" value="">'
+        + '<input type="submit" value="{{action}}"></form>',
       view : {action : action},
       selectors : {
         form : {
@@ -28,8 +32,9 @@ jQuery(function($) {
     };
   };
 
-  // illustrate how to override just parts of it
-  // for each key
+  // The evently widget is defined as a (mostly) declarative structure. See 
+  // the Toast app's index.html for an example of how to override an evently
+  // handler.
   $.couch.app = $.couch.app || {};
   $.couch.app.account = {
     loggedOut : {
@@ -58,8 +63,8 @@ jQuery(function($) {
     },
     // these are called onload, so once this plugin is loaded,
     // they can be modified as declarative structures
-    loginForm : makeNamePassForm("Login"),
-    signupForm : makeNamePassForm("Signup"),
+    loginForm : makeLoginOrSignupFormHandler("Login"),
+    signupForm : makeLoginOrSignupFormHandler("Signup"),
     doLogout : function() {
       var app = $(this);
       $.couch.logout({

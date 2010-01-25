@@ -6,6 +6,7 @@ $.couch.app(function(app) {
   $("#userCtx").evently($.couch.app.account);
   $("#userCtx").trigger("refresh");
   
+  // todo move this to an evently handler
   $("#new_channel").submit(function() {
     var cname = $('#name').val();
     // return false;
@@ -14,6 +15,18 @@ $.couch.app(function(app) {
     document.location = absurl;
     return false;
   });
+  
+  function listChannels(fun) {
+    app.view("channels", {group_level: 1, success: function(json) {
+      fun(json)
+    }});
+  };
+  
+  var templates = {
+    channel_list : '<ul id="channels"></ul>', // todo use partial
+    li_channel : '<li><a href="{{link}}">{{name}}</a> {{count}} messages</li>'
+  }
+  
   var chatApp = $.sammy(function() {
     this.debug = true;
     this.element_selector = '#chat';
@@ -21,18 +34,48 @@ $.couch.app(function(app) {
     // populate the default channel list
     // link to channels
 
-    this.get("#/", function() {
+    this.get("#/", function(e) {
       this.log("fucking a")
       // todo use mustache.js for partials
-      app.view("channels",{group_level: 1, success: function(json) {
-        $("#chat").append('<ul id="channels"></ul>');
-        $("#chat #channels").html(json.rows.map(function(row) {
-          return '<li><a href="#/channel/'+ 
-          encodeURIComponent(row.key[0])
-          +'">'+escapeHTML(row.key[0])+'</a> '+row.value+' messages</li>';
-        }).join(''));
-      }});
+      listChannels(function(json) {
+        e.channels = json.rows;
+        if (!$("#chat #channels").length) {
+          $("#chat").html('<ul id="channels"></ul>');          
+        }
+        json.rows.forEach(function(row) {
+          var view = {
+            link : "#/channel/" + encodeURIComponent(row.key[0]),
+            name : row.key[0],
+            count : row.value
+          };
+          $('#chat #channels').append($.mustache(templates.li_channel, view));
+        });
+      });
     });
+
+    this.get("#/channel/:channel", function() {
+      this.log(this.params.channel);
+      // setup the channel viewer
+      joinChannel(app, this.params.channel);
+      // setup the channel form based on the user profile
+    });
+
+    this.get('#/preso/:id/display/:slide_id', function(e) {
+      $('.nav').hide();
+      e.withCurrentPreso(function(preso) {
+        e.preso = preso;
+        // check if display has already been rendered
+        if ($('#display[rel="'+ preso.id() + '"]').length > 0) {
+          e.displaySlide(preso.slide(e.params.slide_id));
+        } else {
+          e.partial('templates/display.html.erb', function(display) {
+            e.$element().html(display);
+            e.displaySlide(preso.slide(e.params.slide_id));
+          });
+        }
+      });
+    });
+
 
     // this.get('#/', function(e) {
     //   showLoader();
@@ -47,6 +90,8 @@ $.couch.app(function(app) {
     //     });
     //   });
     // });
+
+
 
   });
   
