@@ -38,6 +38,8 @@ $.couch.app(function(app) {
       // todo use mustache.js for partials
       listChannels(function(json) {
         e.channels = json.rows;
+        
+        
         if (!$("#channel #channels").length) {
           $("#channel").html('<ul id="channels"></ul>');          
         }
