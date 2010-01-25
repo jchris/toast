@@ -5,16 +5,20 @@
     <link rel="stylesheet" href="style/main.css" type="text/css">
   </head>
   <body>
-    <h1><a href="#/">Toast</a> <a href="http://couchdb.org">CouchDB</a> Chat</h1>
-    <div id="userCtx"></div>
-    <div id="channel">
-      <!-- start with a list of channels that links to each -->
+    <div id="header">
+      <h1><a href="#/">Toast</a> Chat, powered by <a href="http://apache.couchdb.org">Apache CouchDB</a></h1>
+      <div id="userCtx"></div>
     </div>
-    <div id="chat">
+    <div id="content">
+      <div id="chat">
+        <!-- start with a list of channels that links to each -->
+      </div>
+    </div>
+    <div id="footer">
       <form id="new_message" action="#">
         <p><label for="message">Message</label> <input type="text" name="message" value="" id="message" size=90 autocomplete="off">
         </p>
-        <p><label for="author-name">Name</label>
+        <p><label for="author-name">Nickname</label>
           <input type="text" name="author-name" value="" id="author-name">
           <label for="author-email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)</label>
           <input type="text" name="author-email" value="" id="author-email">
@@ -34,9 +38,9 @@
   <script src="vendor/couchapp/jquery.couch.app.js"></script>
   <script src="vendor/couchapp/jquery.couch.app.account.js"></script>
   <script src="vendor/couchapp/jquery.evently.js"></script>
-  <script src="vendor/sammy/sammy.js"></script>
   <script src="vendor/mustache/jquery.mustache.js"></script>
-  <script src="vendor/mustache/sammy.mustache.js"></script>
+  <script src="vendor/sammy/sammy.js"></script>
+  <script src="vendor/sammy/plugins/sammy.mustache.js"></script>
   <script src="html.js"></script>
   <script src="app.js"></script>
 </html>

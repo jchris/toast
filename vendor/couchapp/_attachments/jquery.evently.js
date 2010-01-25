@@ -1,5 +1,4 @@
 jQuery.fn.evently = function(events, options) {
-
   
   function forIn(obj, fun) {
     var name;
@@ -7,6 +6,21 @@ jQuery.fn.evently = function(events, options) {
       if (obj.hasOwnProperty(name)) {
         fun(name, obj[name])
       }
+    }
+  };
+
+  var self = $(this);
+  
+  function eventlyHandler(name, e) {
+    if (e.template) {
+      templated(self, name, e);
+    } else if (typeof e == "function") {
+      self.bind(name, e);
+    } else if (e.length) { 
+      for (var i=0; i < e.length; i++) {
+        // handle arrays recursively
+        eventlyHandler(name, e[i]);
+      };
     }
   };
 
@@ -59,24 +73,8 @@ jQuery.fn.evently = function(events, options) {
     });
   };
   
-  var self = $(this);
-
-  forIn(events, function(name, e) {
-    if (e.template) {
-      templated(self, name, e);
-    } else if (typeof e == "function") {
-      // if it's a function...
-      self.bind(name, e);
-    } // else if (e.length) {
-     //      // an array
-     //      var act;
-     //      for (var i=0; i < e.length; i++) {
-     //        act = e[i]
-     //        // handle recursively
-     //      };
-     //      
-     //    }
-  });
+  // setup the handlers onto self
+  forIn(events, eventlyHandler);
   
   if (events.init) {
     self.trigger("init");

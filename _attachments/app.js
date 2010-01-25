@@ -1,8 +1,47 @@
 $.couch.app(function(app) {
+  var userProfile = {}, currentChannel = null;  
+  
+  function loggedIn(e, resp) {
+    // get the user profile doc
+    app.view("user-profiles", {
+      key : resp.userCtx.name, success : function(view) {
+        if (view.rows.length == 0) {
+          // no profile yet        
+          userProfile = {
+            authorRand :  Math.random().toString(),
+            userCtx : resp.userCtx
+          };
+          $("#new_message").trigger("newProfile");
+        } else if (view.rows.length == 1) {
+          // populate the form with the profile
+          userProfile = view.rows[0].value;
+          $("#new_message").trigger("newProfile");
+        } else {
+          // some kind of collision
+          // todo create a ui for picking your profile
+          // from the available list
+          userProfile = {};
+          $("#new_message").trigger("newProfile");
+          alert("More than one profile for "+resp.userCtx.name+". Please resolve.")
+        }
+    }});
+    // prefill the form
+    // preview gravatar
+    // copy gravatar to profile doc:
+    // http://stackoverflow.com/questions/934012/get-image-data-in-javascript
+  };
+  
+  
+  function loggedOut(e) {
+    userProfile = {};
+    $("#new_message").trigger("newProfile");
+  };
   // setup the account widget
   // first we customize a template for Toast
   $.couch.app.account.loggedIn.template = 'Toasty ' + $.couch.app.account.loggedIn.template;
   // now launch the evently widget.
+  $.couch.app.account.loggedIn = [$.couch.app.account.loggedIn, loggedIn]
+  
   $("#userCtx").evently($.couch.app.account);
   
   // todo move this to an evently handler
@@ -15,84 +54,161 @@ $.couch.app(function(app) {
     return false;
   });
   
-  function listChannels(fun) {
-    app.view("channels", {group_level: 1, success: function(json) {
-      fun(json)
-    }});
-  };
+  $("#new_message").evently({
+    submit : [function(e) {
+      e.preventDefault();
+      // maybe update userProfile doc
+      // create doc if needed
+      var name, email, url;
+      name = $("#author-name").val();
+      email = $("#author-email").val();
+      url = $("#author-url").val();
+      if (name == userProfile.name &&
+        email == userProfile.email &&
+        url == userProfile.url) {
+          // no changes, ignore
+      } else {
+        userProfile.name = name;
+        userProfile.email = email;
+        userProfile.url = url;
+        app.db.saveDoc(userProfile);
+      }
+      return false;
+    },
+    function() {
+      // post new_message
+      var name, email, url, body;
+      name = $("#author-name").val();
+      email = $("#author-email").val();
+      url = $("#author-url").val();
+      body = $("#message").val();
+      if (body) {
+        var message = {
+          author: {
+            name : name,
+            email : email,
+            url :url,
+            authorRand : userProfile.authorRand
+          },
+          date : new Date(),
+          body : body
+        };
+        app.db.saveDoc({
+          channel : currentChannel,
+          message : message
+        }, { 
+          success : function() {
+            $("#message").val('');          
+          }
+        });
+      }
+      return false;
+    }],
+    newProfile : function(e) {
+      // update the form with the new profile info
+      // setup the channel form based on the user profile
+      $("#author-name", this).val(userProfile.name);
+      $("#author-email", this).val(userProfile.email);
+      $("#author-url", this).val(userProfile.url);
+    }
+  });
   
   var templates = {
     channel_list : '<ul id="channels"></ul>', // todo use partial
-    li_channel : '<li><a href="{{link}}">{{name}}</a> {{count}} messages</li>'
+    li_channel : '<li><a href="{{link}}">{{name}}</a> {{count}} messages</li>',
+    index : {
+      title : 
+      '<a href="#/">Toast</a> Chat, powered by <a href="http://apache.couchdb.org">Apache CouchDB</a>',
+      title_tag : "Toast Chat powered by Apache CouchDB"
+      
+    },
+    channel : {
+      title : 
+      '<a href="#/">Toast</a> :: {{channel}}'
+    }
   }
   
   var chatApp = $.sammy(function() {
     this.debug = true;
-    this.element_selector = '#channel';
+    this.element_selector = '#chat';
+    this.use(Sammy.Mustache, 'mustache');
+    
 
     // populate the default channel list
     // link to channels
 
+    this.helpers({
+      listChannels : function(fun) {
+        app.view("channels", {group_level: 1, success: function(json) {
+          fun(json);
+        }});
+      }
+    })
+
     this.get("#/", function(e) {
-      this.log("fucking a")
-      // todo use mustache.js for partials
-      listChannels(function(json) {
-        e.channels = json.rows;
-        
-        
-        if (!$("#channel #channels").length) {
-          $("#channel").html('<ul id="channels"></ul>');          
-        }
-        json.rows.forEach(function(row) {
-          var view = {
+      $('h1').html($.mustache(templates.index.title));
+      document.title = templates.index.title_tag;
+      
+      this.listChannels(function(json) {
+        e.channels = json.rows.map(function(row) {
+          return {
             link : "#/channel/" + encodeURIComponent(row.key[0]),
             name : row.key[0],
             count : row.value
           };
-          $('#channel #channels').append($.mustache(templates.li_channel, view));
+        });
+        
+        e.partial('templates/channels.html.mustache', e, function(t) {
+          this.app.swap(t);
         });
       });
+
+      // setup footer
+      $("#new_message").hide();
+      $("#new_channel").show();
     });
 
-    this.get("#/channel/:channel", function() {
-      this.log(this.params.channel);
-      // setup the channel viewer
-      joinChannel(app, this.params.channel);
-      // setup the channel form based on the user profile
-    });
-
-    this.get('#/preso/:id/display/:slide_id', function(e) {
-      $('.nav').hide();
-      e.withCurrentPreso(function(preso) {
-        e.preso = preso;
-        // check if display has already been rendered
-        if ($('#display[rel="'+ preso.id() + '"]').length > 0) {
-          e.displaySlide(preso.slide(e.params.slide_id));
-        } else {
-          e.partial('templates/display.html.erb', function(display) {
-            e.$element().html(display);
-            e.displaySlide(preso.slide(e.params.slide_id));
-          });
-        }
+    this.get("#/channel/:channel", function(e) {
+      var channel = this.params.channel;
+      currentChannel = channel;
+      $('h1').html($.mustache(templates.channel.title, {
+        channel : channel
+      }));
+      document.title = "Toast :: "+channel;
+      
+      // setup the channel viewer      
+      e.partial('templates/channel.html.mustache', e, function(t) {
+        this.app.swap(t);
       });
+      // view channel and append new junks
+      // setup changes consumer to keep doing that
+      
+      joinChannel(app, this.params.channel);
+      // setup footer
+      $("#new_channel").hide();
+      $("#new_message").show();
     });
 
+    function joinChannel(app, cname) {
 
-    // this.get('#/', function(e) {
-    //   showLoader();
-    //   this.partial('templates/index.html.erb', function(t) {
-    //     this.app.swap(t);
-    //     Preso.all(function(presos) {
-    //       e.presos = presos;
-    //       e.partial('templates/_presos.html.erb', function(p) {
-    //         $('#presos').append(p);
-    //         Slide.setCSS({width: 300, height: 300});
-    //       });
-    //     });
-    //   });
-    // });
+    // let's keep this stuff in a user preference document
+      // $("#author-name").val($.cookies.get("name"));
+      // $("#author-email").val($.cookies.get("email"));
+      // var authorRand =  $.cookies.get("rand") || Math.random().toString();
+      // $("#author-url").val($.cookies.get("url"));
+
+      // attach 2 events to this form submit,
+      // the sender but first save some data
+      // to the profile doc
 
 
+      // this is where we hang on the continuous _changes api
+      // get the raw xhr
+      refreshView(app, cname);
+      connectToChanges(app, function() {
+        refreshView(app, cname);
+      });
+    };
 
   });
   
@@ -125,49 +241,6 @@ function refreshView(app, cname) {
         + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">'+( m.date || 'perma')+'</a><br class="clear"/></li>';
     }).join(''));
   }});
-};
-
-function joinChannel(app, cname) {
-  $('h1').text('Toast - ' + cname);
-
-// let's keep this stuff in a user preference document
-  // $("#author-name").val($.cookies.get("name"));
-  // $("#author-email").val($.cookies.get("email"));
-  // var authorRand =  $.cookies.get("rand") || Math.random().toString();
-  // $("#author-url").val($.cookies.get("url"));
-  var authorRand =  Math.random().toString();
-  
-  $("#new_message").submit(function() {
-    var name, email, url, body;
-    name = $("#author-name").val();
-    email = $("#author-email").val();
-    url = $("#author-url").val();
-    // $.cookies.set("name", name);
-    // $.cookies.set("email", email);
-    // $.cookies.set("url", url);
-    // $.cookies.set("rand", authorRand);
-    body = $("#message").val();
-    if (body) {
-      var message = {
-        author: {
-          name : name,
-          email :(email||authorRand),
-          url :url
-        },
-        date : new Date(),
-        body : body
-      };
-      app.db.saveDoc({channel:cname,message:message});
-      $("#message").val('');
-    }
-    return false;
-  });
-  // this is where we hang on the continuous _changes api
-  // get the raw xhr
-  refreshView(app, cname);
-  connectToChanges(app, function() {
-    refreshView(app, cname);
-  });
 };
 
 function connectToChanges(app, fun) {
