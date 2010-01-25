@@ -39,6 +39,9 @@ jQuery(function($) {
   // handler.
   $.couch.app = $.couch.app || {};
   $.couch.app.account = {
+    init : function() {
+      $(this).trigger("refresh"); 
+    },
     loggedOut : {
       template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
       selectors : {

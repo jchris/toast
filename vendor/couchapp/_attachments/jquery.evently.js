@@ -77,4 +77,8 @@ jQuery.fn.evently = function(events, options) {
      //      
      //    }
   });
+  
+  if (events.init) {
+    self.trigger("init");
+  }
 };

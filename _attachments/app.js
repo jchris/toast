@@ -4,7 +4,6 @@ $.couch.app(function(app) {
   $.couch.app.account.loggedIn.template = 'Toasty ' + $.couch.app.account.loggedIn.template;
   // now launch the evently widget.
   $("#userCtx").evently($.couch.app.account);
-  $("#userCtx").trigger("refresh");
   
   // todo move this to an evently handler
   $("#new_channel").submit(function() {
@@ -29,7 +28,7 @@ $.couch.app(function(app) {
   
   var chatApp = $.sammy(function() {
     this.debug = true;
-    this.element_selector = '#chat';
+    this.element_selector = '#channel';
 
     // populate the default channel list
     // link to channels
@@ -39,8 +38,8 @@ $.couch.app(function(app) {
       // todo use mustache.js for partials
       listChannels(function(json) {
         e.channels = json.rows;
-        if (!$("#chat #channels").length) {
-          $("#chat").html('<ul id="channels"></ul>');          
+        if (!$("#channel #channels").length) {
+          $("#channel").html('<ul id="channels"></ul>');          
         }
         json.rows.forEach(function(row) {
           var view = {
@@ -48,7 +47,7 @@ $.couch.app(function(app) {
             name : row.key[0],
             count : row.value
           };
-          $('#chat #channels').append($.mustache(templates.li_channel, view));
+          $('#channel #channels').append($.mustache(templates.li_channel, view));
         });
       });
     });

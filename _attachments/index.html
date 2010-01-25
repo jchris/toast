@@ -7,15 +7,26 @@
   <body>
     <h1><a href="#/">Toast</a> <a href="http://couchdb.org">CouchDB</a> Chat</h1>
     <div id="userCtx"></div>
-    <p><a href="http://github.com/jchris/toast">Download the Toast source code here.</a></p>
     <div id="channel">
       <!-- start with a list of channels that links to each -->
     </div>
-    <div id="chat"></div>
-    <form id="new_channel" action="#">
-      <p><label for="name">Channel Name</label> <input type="text" name="name" value="" id="name"></p>
-      <p><input type="submit" value="Go &rarr;"></p>
-    </form>
+    <div id="chat">
+      <form id="new_message" action="#">
+        <p><label for="message">Message</label> <input type="text" name="message" value="" id="message" size=90 autocomplete="off">
+        </p>
+        <p><label for="author-name">Name</label>
+          <input type="text" name="author-name" value="" id="author-name">
+          <label for="author-email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)</label>
+          <input type="text" name="author-email" value="" id="author-email">
+          <label for="author-url">URL</label> <input type="text" name="author-url" value="" id="author-url">
+          <input type="submit" value="Go &rarr;">
+        </p>
+      </form>
+      <form id="new_channel" action="#">
+        <p><label for="name">Channel Name</label> <input type="text" name="name" value="" id="name"></p>
+        <p><input type="submit" value="Go &rarr;"></p>
+      </form>
+    </div>
   </body>
   <script src="/_utils/script/json2.js"></script>
   <script src="/_utils/script/jquery.js"></script>
