@@ -48,11 +48,11 @@ $.couch.app(function(app) {
   
   // todo move this to an evently handler
   $("#new_channel").submit(function() {
-    var cname = $('#name').val();
+    var cname = $('#name', this).val();
     // return false;
-    $('body').append('<a href="channel.html#'+encodeURIComponent(cname)+'">redirect</a>');
-    var absurl = $('body a:last')[0].href;
-    document.location = absurl;
+    // $('body').append('<a href="#'+encodeURIComponent(cname)+'">redirect</a>');
+    // var absurl = $('body a:last')[0].href;
+    document.location = "#/channel/" + encodeURIComponent(cname);
     return false;
   });
   
