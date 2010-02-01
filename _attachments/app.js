@@ -11,8 +11,8 @@ $.couch.app(function(app) {
           // no profile yet        
           userProfile = {
             type : "userProfile",
-            authorRand :  Math.random().toString(),
-            userCtx : resp.userCtx
+            authorRand : userProfile.authorRand || Math.random().toString(),
+            name : resp.userCtx.name
           };
           $("#new_message").trigger("newProfile");
         } else if (view.rows.length == 1) {
@@ -34,7 +34,11 @@ $.couch.app(function(app) {
     // http://stackoverflow.com/questions/934012/get-image-data-in-javascript
   };
   function loggedOut(e) {
-    userProfile = {};
+    console.log("loggedout")
+    console.log(userProfile)
+    userProfile = {
+      authorRand :  Math.random().toString(),
+    };
     $("#new_message").trigger("newProfile");
   };
   
@@ -88,7 +92,7 @@ $.couch.app(function(app) {
             name : name,
             email : email,
             url :url,
-            authorRand : userProfile.authorRand
+            rand : userProfile.authorRand
           },
           date : new Date(),
           body : body
@@ -107,9 +111,9 @@ $.couch.app(function(app) {
     newProfile : function(e) {
       // update the form with the new profile info
       // setup the channel form based on the user profile
-      $("#author-name", this).val(userProfile.name);
-      $("#author-email", this).val(userProfile.email);
-      $("#author-url", this).val(userProfile.url);
+      $("#author-name", this).val(userProfile.name || "");
+      $("#author-email", this).val(userProfile.email || "");
+      $("#author-url", this).val(userProfile.url || "");
     }
   });
   

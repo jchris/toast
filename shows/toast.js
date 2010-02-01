@@ -9,7 +9,7 @@ function(doc, req) {
   return template(templates.toast, {
     name : escapeHTML(m.author.name),
     channel : escapeHTML(doc.channel),
-    gravatar :  hex_md5(m.author.email),
+    gravatar :  hex_md5(m.author.email || m.author.rand),
     body : escapeHTML(m.body),
     date : escapeHTML(m.date)
   });
