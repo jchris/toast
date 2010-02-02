@@ -1,54 +1,17 @@
 $.couch.app(function(app) {
-  var userProfile = {}, currentChannel = null, since_seq = 0;  
+  var since_seq = 0;  
   
-  // TODO package these logged in and logged as part of the userprofile code
-  function loggedIn(e, resp) {
-    // get the user profile doc
-    // todo loggedIn should just trigger the user profile event
-    app.view("userProfile", {
-      key : resp.userCtx.name, success : function(view) {
-        if (view.rows.length == 0) {
-          // no profile yet        
-          userProfile = {
-            type : "userProfile",
-            authorRand : userProfile.authorRand || Math.random().toString(),
-            name : resp.userCtx.name
-          };
-          $("#new_message").trigger("newProfile");
-        } else if (view.rows.length == 1) {
-          // populate the form with the profile
-          userProfile = view.rows[0].value;
-          $("#new_message").trigger("newProfile");
-        } else {
-          // some kind of collision
-          // todo create a ui for picking your profile
-          // from the available list
-          userProfile = {};
-          $("#new_message").trigger("newProfile");
-          alert("More than one profile for "+resp.userCtx.name+". Please resolve.")
-        }
-    }});
-    // todo
-    // preview gravatar
-    // copy gravatar to profile doc:
-    // http://stackoverflow.com/questions/934012/get-image-data-in-javascript
-  };
-  function loggedOut(e) {
-    console.log("loggedout")
-    console.log(userProfile)
-    userProfile = {
-      authorRand :  Math.random().toString(),
-    };
-    $("#new_message").trigger("newProfile");
-  };
+  // setup the profile widget
+  $("#profile").evently($.couch.app.profile);
+
+  // link the widgets
+  $.evently.connect($.couch.app.account, $("#profile"), ["loggedIn", "loggedOut"]);
   
   // setup the account widget
-  // first we customize a template for Toast
-  $.couch.app.account.loggedIn.template = 'Toasty ' + $.couch.app.account.loggedIn.template;
-  // now launch the evently widget.
-  $.couch.app.account.loggedIn = [$.couch.app.account.loggedIn, loggedIn];
-  $.couch.app.account.loggedOut = [$.couch.app.account.loggedOut, loggedOut];
-  $("#userCtx").evently($.couch.app.account);
+  $("#account").evently($.couch.app.account);
+  
+  return;
+  
   
   // todo move this to an evently handler
   $("#new_channel").submit(function() {

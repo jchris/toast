@@ -80,3 +80,17 @@ jQuery.fn.evently = function(events, options) {
     self.trigger("init");
   }
 };
+
+(function($) {
+  $.evently = {
+    connect : function(source, target, events) {
+      events.forEach(function(e) {
+        source[e] = [source[e], function() {
+          var args = $.makeArray(arguments);
+          args.shift();
+          target.trigger(e, args);
+        }];
+      });
+    }
+  }
+})(jQuery);

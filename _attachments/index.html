@@ -1,43 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Toast CouchDB Chat</title>
+    <title>Tasker</title>
     <link rel="stylesheet" href="style/main.css" type="text/css">
   </head>
   <body>
     <div id="header">
-      <div id="userCtx"></div>
-      <h1><a href="#/">Toast</a> Chat, powered by <a href="http://apache.couchdb.org">Apache CouchDB</a></h1>
+      <div id="account"></div>
+      <div id="profile"></div>
     </div>
     <div id="content">
-      <div id="sidebar">
-
-      </div>
-      <div id="forms">
-        <form id="new_message" action="#">
-          <p><label for="message">Message</label> <input type="text" name="message" value="" id="message" size=90 autocomplete="off">
-          </p>
-          <p><label for="author-name">Nickname</label>
-            <input type="text" name="author-name" value="" id="author-name">
-            <label for="author-email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)</label>
-            <input type="text" name="author-email" value="" id="author-email">
-            <label for="author-url">URL</label> <input type="text" name="author-url" value="" id="author-url">
-            <input type="submit" value="Go &rarr;">
-          </p>
-        </form>
-        <form id="new_channel" action="#">
-          <h3>Create a Channel</h3>
-          <p><label for="name">Name</label> <input type="text" name="name" value="" id="name"></p>
-          <p><input type="submit" value="Go &rarr;"></p>
-        </form>
-      </div>
-      <div id="chat">
-        <!-- start with a list of channels that links to each -->
-      </div>
+      <div id="browse"></div>
+      <div id="tasks"></div>
       <br style="clear:both;"/>
-    </div>
-    <div id="footer">
-      Toast is fun. <a href="about.html">Learn about Toast.</a>
     </div>
   </body>
   <script src="/_utils/script/json2.js"></script>
@@ -45,10 +20,9 @@
   <script src="/_utils/script/jquery.couch.js"></script>
   <script src="vendor/couchapp/jquery.couch.app.js"></script>
   <script src="vendor/couchapp/jquery.couch.app.account.js"></script>
+  <script src="vendor/couchapp/jquery.couch.app.profile.js"></script>
   <script src="vendor/couchapp/jquery.evently.js"></script>
   <script src="vendor/mustache/jquery.mustache.js"></script>
-  <script src="vendor/sammy/sammy.js"></script>
-  <script src="vendor/sammy/plugins/sammy.mustache.js"></script>
   <script src="html.js"></script>
   <script src="app.js"></script>
 </html>
