@@ -137,7 +137,7 @@ $.couch.app(function(app) {
     });
   };
   
-  function appendMessages(messages) {
+  function prependMessages(messages) {
     messages.forEach(function(row) {
       // todo use mustache
       var m = row.value;
@@ -153,10 +153,8 @@ $.couch.app(function(app) {
         + "</strong>: "
         + linkify(m.body)
         + '</span> <br/><a class="perma" href="'+app.showPath('toast',row.id)+'">'+( m.date || 'perma')+'</a><br class="clear"/></li>';
-      $("#messages").append(li);
+      $("#messages").prepend(li);
     });
-    // scroll down
-    $("body").scrollTo($("body").height());
   };
   
   var templates = {
@@ -231,9 +229,9 @@ $.couch.app(function(app) {
       // view channel and append new junks
       // setup changes consumer to keep doing that
       
-      latestMessages(currentChannel, appendMessages);
+      latestMessages(currentChannel, prependMessages);
       connectToChanges(app, function() {
-        latestMessages(currentChannel, appendMessages);
+        latestMessages(currentChannel, prependMessages);
       });
       
       // setup footer
