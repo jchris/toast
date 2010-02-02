@@ -15,10 +15,6 @@ h2 {
 #header {
   padding:4px;
   background:#bbb;
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
 }
 
 #userCtx {
@@ -27,17 +23,11 @@ h2 {
 
 #content {
   background:#eee;
-  margin-top:4em;
-  margin-bottom:8em;
   clear:both;
 }
 
 #footer {
   background:#8ab;
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
 }
 
 #chat {
