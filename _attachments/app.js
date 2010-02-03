@@ -35,7 +35,7 @@ $.couch.app(function(app) {
   $("#profile").evently($.couch.app.profile);
 
   // link the widgets
-  $.evently.connect($.couch.app.account, $("#profile"), ["loggedIn", "loggedOut"]);
+  $.evently.connect($("#account"), $("#profile"), ["loggedIn", "loggedOut"]);
   
   // setup the account widget
   $("#account").evently($.couch.app.account);
@@ -118,7 +118,22 @@ $.couch.app(function(app) {
     }
   };
   
+  var browse = {
+    init : "refresh",
+    refresh : function() {
+      app.view("tag-cloud", {
+        group : true,
+        success : function(resp) {
+          console.log(resp.rows);
+          // render the tag cloud
+        }
+      });
+    }
+  }
+  
+  $.evently.connect($("#tasks"), $("#browse"), ["refresh"]);
   $("#tasks").evently(tasks);
+  $("#browse").evently(browse);
   
   function connectToChanges(app, fun) {
     function resetHXR(x) {

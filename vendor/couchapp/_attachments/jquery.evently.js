@@ -21,6 +21,11 @@ jQuery.fn.evently = function(events, options) {
         // handle arrays recursively
         eventlyHandler(name, e[i]);
       };
+    } else {
+      // it's a string name of another event to trigger
+      self.bind(name, function() {
+        $(this).trigger(e);
+      });
     }
   };
 
@@ -93,11 +98,11 @@ jQuery.fn.evently = function(events, options) {
   $.evently = {
     connect : function(source, target, events) {
       events.forEach(function(e) {
-        source[e] = [source[e], function() {
+        source.bind(e, function() {
           var args = $.makeArray(arguments);
           args.shift();
           target.trigger(e, args);
-        }];
+        });
       });
     }
   }
