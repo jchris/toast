@@ -2,10 +2,13 @@ $.couch.app(function(app) {
   var since_seq = 0;
 
   // todo, use the templates ddoc object for this.
+  
+  $.couch.app.profile.loggedOut.template = '<p>Please log in to add tasks.</p>';
+  
   $.couch.app.profile.profileReady.template = 
-  [ '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="nickname">{{nickname}}</div></div>',
-    '<form><textarea name="body" width="70"></textarea>',
-    '<input type="submit" value="Begin &rarr;"></form>'
+  [ '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{nickname}}</div></div>',
+    '<form><textarea name="body" cols="80" rows="3"></textarea><br/>',
+    '<input type="submit" value="New Task &rarr;"></form><br class="clear"/>'
   ].join(' ');
 
   // we use a custom callback to handle the form submission
@@ -37,6 +40,17 @@ $.couch.app(function(app) {
   // setup the account widget
   $("#account").evently($.couch.app.account);
   
+  function linkify(body) {
+    return body.replace(/((ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?)/gi,function(a) {
+      return '<a target="_blank" href="'+a+'">'+a+'</a>';
+    }).replace(/\@([\w\-]+)/g,function(user,name) {
+      return '<a target="_blank" href="http://twitter.com/'+name+'">'+user+'</a>';
+    }).replace(/\#([\w\-\.]+)/g,function(word,term) {
+      return '<a href="#'+encodeURIComponent(term)+'">'+word+'</a>';
+    });
+  };
+  
+  
   var tasks = {
     init : function() {
       $(this).trigger("refresh"); 
@@ -54,8 +68,8 @@ $.couch.app(function(app) {
     redraw : {
       template : [
       '<ul>{{#tasks}}<li>',
-      '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="nickname">{{nickname}}</div></div>',
-      '<div class="body">{{body}}</div><div class="react">',
+      '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{name}}</div></div>',
+      '<div class="body">{{{body}}}</div><div class="react">',
       '<a href="#">reply</a> <a href="#">mute</a> <a href="#">done!</a></div>',
       '<br class="clear"/></li>{{/tasks}}</ul>'].join(' '),
       view : function(e, rows) {
@@ -64,8 +78,8 @@ $.couch.app(function(app) {
             var v = r.value;
             return {
               avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
-              body : r.value.body,
-              nickname : v.authorProfile && v.authorProfile.nickname
+              body : linkify($.mustache.escape(r.value.body)),
+              name : v.authorProfile && v.authorProfile.name
             }
           })
         };
