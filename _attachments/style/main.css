@@ -1,5 +1,5 @@
 body {
-  font-family:Optima, "Palatino Linotype", Garamond, Georgia, serif;
+  font:1em Helvetica, sans-serif;
   margin:0;
   padding:0;
 }
@@ -20,13 +20,9 @@ h2 {
   float:right;
 }
 
-/*#profile img.avatar {
-  float:left;
-}*/
-
-img.avatar {
-  padding-right:4px;
-  float:left;
+form {
+  padding:10px;
+  background:#ddd;
 }
 
 #content {
@@ -53,11 +49,56 @@ img.avatar {
 }
 
 #tasks li {
-  padding:4px;
-  margin:4px;
+  padding:6px;
+  margin:10px;
+  border: 1px solid #fff;
+  background-color:#fff;
+  -webkit-border-radius:14px;
+  -webkit-transition-property:background-color;
+  -webkit-transition-duration:0.5s;
+  -moz-border-radius:14px;
+  -moz-transition-property:background-color;
+  -moz-transition-duration:0.5s;
 }
 
-form {
-  padding:10px;
-  background:#ddd;
+#tasks li:hover {
+  border: 1px solid #999;
+  background-color:#999;
 }
+
+#tasks li .body {
+  padding:8px;
+}
+
+#tasks li .react a {
+  color:#fff;
+  padding:4px;
+  font-size:0.78em;
+}
+
+div.avatar {
+  padding:2px;
+  margin-right:4px;
+  float:left;
+  font-size:0.78em;
+  width : 60px;
+  height : 60px;
+  text-align: center;
+}
+
+div.avatar .nickname {
+  padding-top:6px;
+}
+
+div.avatar img {
+  margin:0 auto;
+  padding:0;
+  display: block;
+  width : 40px;
+  height : 40px;
+}
+
+#tasks li div.avatar {
+  color:#fff;
+}
+

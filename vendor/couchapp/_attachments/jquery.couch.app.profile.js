@@ -23,9 +23,12 @@ jQuery(function($) {
         template : '<p>Please log in</p>'
       },
       profileReady : {
-        template : '<p><img src="{{{gravatar_url}}}"/> Hello {{nickname}}</p>',
-        view : function(e, profile) {
-          return profile;
+        template : '<p><img src="{{{avatar_url}}}"/> Hello {{nickname}}</p>',
+        view : function(e, p) {
+          return {
+            nickname : p.nickname,
+            avatar_url : p.gravatar_url
+          };
         }
       },
       

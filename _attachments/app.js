@@ -3,7 +3,7 @@ $.couch.app(function(app) {
 
   // todo, use the templates ddoc object for this.
   $.couch.app.profile.profileReady.template = 
-  [ '<img class="avatar" src="{{{gravatar_url}}}"/>',
+  [ '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="nickname">{{nickname}}</div></div>',
     '<form><textarea name="body" width="70"></textarea>',
     '<input type="submit" value="Begin &rarr;"></form>'
   ].join(' ');
@@ -52,14 +52,20 @@ $.couch.app(function(app) {
       });
     },
     redraw : {
-      template : '<ul>{{#tasks}}<li><img src="{{avatar_url}}"/> {{body}}</li>{{/tasks}}</ul>',
+      template : [
+      '<ul>{{#tasks}}<li>',
+      '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="nickname">{{nickname}}</div></div>',
+      '<div class="body">{{body}}</div><div class="react">',
+      '<a href="#">reply</a> <a href="#">mute</a> <a href="#">done!</a></div>',
+      '<br class="clear"/></li>{{/tasks}}</ul>'].join(' '),
       view : function(e, rows) {
         return {
           tasks : rows.map(function(r) {
             var v = r.value;
             return {
               avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
-              body : r.value.body
+              body : r.value.body,
+              nickname : v.authorProfile && v.authorProfile.nickname
             }
           })
         };
