@@ -1,5 +1,5 @@
 function(doc) {
-  // !code helpers/md5.js
+  // !code _attachments/script/md5.js
   // !code _attachments/html.js
   
   if (doc.channel && doc.message) {
@@ -7,7 +7,6 @@ function(doc) {
     var v = {
       author : {
         name : safeHTML(mess.author.name, 50),
-        gravatar : hex_md5(mess.author.email),
         url: escapeHTML(mess.author.url)
       },
       body : safeHTML(mess.body, 250)

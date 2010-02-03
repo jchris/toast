@@ -14,12 +14,12 @@ h2 {
 
 #header {
   padding:4px;
-  background:#bbb;
 }
 
-#userCtx {
+#account {
   float:right;
 }
+
 
 #content {
   background:#eee;

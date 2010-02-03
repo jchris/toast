@@ -1,7 +1,7 @@
 function(doc, req) {
   // !code helpers/template.js
   // !code _attachments/app.js
-  // !code helpers/md5.js
+  // !code _attachments/script/md5.js
 
   // !json templates.toast
 

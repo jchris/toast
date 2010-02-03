@@ -12,15 +12,22 @@
     <div id="chat">
       <div id="userCtx"></div>
       <form id="new_message" action="#">
-        <p><label for="message">Message</label> <input type="text" name="message" value="" id="message" size=90 autocomplete="off">
+        <p><label for="message">Message <input type="text" name="message" value="" id="message" size=90 autocomplete="off"></label>
         </p>
-        <p><label for="author-name">Name</label>
+        <p>
+          <label for="nickname">Nickname <input type="text" name="nickname" value=""></label>
+          <label for="email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)
+          <input type="text" name="email" value=""></label>
+          <label for="url">URL<input type="text" name="url" value=""></label> 
+          <input type="submit" value="Go &rarr;">
+        </p>
+        
+        <label for="author-name">Nickname</label>
           <input type="text" name="author-name" value="" id="author-name">
           <label for="author-email">Email (<em>for <a href="http://gravatar.com">Gravatar</a></em>)</label>
           <input type="text" name="author-email" value="" id="author-email">
           <label for="author-url">URL</label> <input type="text" name="author-url" value="" id="author-url">
           <input type="submit" value="Go &rarr;">
-        </p>
       </form>
       <ul id="messages"></ul>
     </div>
