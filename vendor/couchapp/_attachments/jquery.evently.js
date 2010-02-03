@@ -54,9 +54,9 @@
     if ('onhashchange' in window) {
       // we have a native event
     } else {
-      pollPath(50);
+      pollPath(10);
     }
-    
+    setTimeout(hashChanged,50);
     $(window).bind('hashchange', hashChanged);
   });
 

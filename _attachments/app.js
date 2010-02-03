@@ -60,18 +60,19 @@ $.couch.app(function(app) {
   '<br class="clear"/></li>{{/tasks}}</ul>'].join(' ');
   
   var tasks = {
-    init : function() {
-      $(this).trigger("refresh"); 
-    },
-    refresh : function() {
-      var widget = $(this);
-      app.view("new-tasks", {
-        limit : 25,
-        descending : true,
-        success : function(resp) {
-          widget.trigger("redraw",[resp.rows]); 
-        }
-      });
+    init : "refresh",
+    refresh : {
+      path : "/",
+      fun: function() {
+        var widget = $(this);
+        app.view("new-tasks", {
+          limit : 25,
+          descending : true,
+          success : function(resp) {
+            widget.trigger("redraw",[resp.rows]); 
+          }
+        });
+      }
     },
     by_tag : {
       path : "/tags/:tag",
