@@ -11,17 +11,19 @@ $.couch.app(function(app) {
   // we use a custom callback to handle the form submission
   $.couch.app.profile.profileReady.after = function(e, profile) {
     $("form", this).submit(function() {
+      var texta =  $("textarea[name=body]", this);
       var newTask = {
-        body : $("textarea[name=body]", this).val(),
+        body : texta.val(),
         type : "task",
         created_at : new Date(),
         authorProfile : profile
       };
       app.db.saveDoc(newTask, {
         success : function() {
+          texta.val('');
           $("#tasks").trigger("refresh");
         }
-      })
+      });
       return false;
     });
   };
@@ -42,17 +44,22 @@ $.couch.app(function(app) {
       var widget = $(this);
       app.view("new-tasks", {
         limit : 25,
+        descending : true,
         success : function(resp) {
           widget.trigger("redraw",[resp.rows]); 
         }
       });
     },
     redraw : {
-      template : '<ul>{{#tasks}}<li>Task: {{body}}</li>{{/tasks}}</ul>',
+      template : '<ul>{{#tasks}}<li><img src="{{image_url}}"/> {{body}}</li>{{/tasks}}</ul>',
       view : function(e, rows) {
         return {
           tasks : rows.map(function(r) {
-            return r.value;
+            var v = r.value;
+            return {
+              image_url : v.authorProfile && v.authorProfile.gravatar_url,
+              body : r.value.body
+            }
           })
         };
       }
