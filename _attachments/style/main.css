@@ -71,6 +71,10 @@ div#profile {
   background-color:#aaa;
 }
 
+#tasks li.done, #tasks li.done:hover {
+  background-color:#cfb;
+}
+
 #tasks li .body {
   padding:8px;
 }

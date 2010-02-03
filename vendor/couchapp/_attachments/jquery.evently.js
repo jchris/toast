@@ -43,14 +43,14 @@ jQuery.fn.evently = function(events, options) {
             for (var i=0; i < evs.length; i++) {
               ev = evs[i];
               if (typeof ev == "function") {
-                ev.apply(me, arguments);
+                ev.apply(self, arguments);
               } else {
                 self.trigger(ev);              
               }
             }
           } else {
             if (typeof evs == "function") {
-              evs.apply(me, arguments);
+              evs.apply(self, arguments);
             } else {
               self.trigger(evs);              
             }

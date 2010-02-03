@@ -40,13 +40,14 @@ $.couch.app(function(app) {
   // setup the account widget
   $("#account").evently($.couch.app.account);
   
+  // todo move to a plugin somewhere
   function linkify(body) {
     return body.replace(/((ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?)/gi,function(a) {
       return '<a target="_blank" href="'+a+'">'+a+'</a>';
     }).replace(/\@([\w\-]+)/g,function(user,name) {
-      return '<a target="_blank" href="http://twitter.com/'+name+'">'+user+'</a>';
-    }).replace(/\#([\w\-\.]+)/g,function(word,term) {
-      return '<a href="#'+encodeURIComponent(term)+'">'+word+'</a>';
+      return '<a href="#/users/'+encodeURIComponent(name)+'">'+user+'</a>';
+    }).replace(/\#([\w\-\.]+)/g,function(word,tag) {
+      return '<a href="#/tags/'+encodeURIComponent(tag)+'">'+word+'</a>';
     });
   };
   
@@ -67,10 +68,10 @@ $.couch.app(function(app) {
     },
     redraw : {
       template : [
-      '<ul>{{#tasks}}<li>',
+      '<ul>{{#tasks}}<li data-id="{{{id}}}">',
       '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{name}}</div></div>',
       '<div class="body">{{{body}}}</div><div class="react">',
-      '<a href="#">reply</a> <a href="#">mute</a> <a href="#">done!</a></div>',
+      '<a href="#reply">reply</a> <a href="#mute">mute</a> <a href="#done">done!</a></div>',
       '<br class="clear"/></li>{{/tasks}}</ul>'].join(' '),
       view : function(e, rows) {
         return {
@@ -79,10 +80,40 @@ $.couch.app(function(app) {
             return {
               avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
               body : linkify($.mustache.escape(r.value.body)),
-              name : v.authorProfile && v.authorProfile.name
+              name : v.authorProfile && v.authorProfile.name,
+              id : r.id
             }
           })
         };
+      },
+      selectors : {
+        'a[href=#done]' : {
+          click : function() {
+            var li = $(this).parents("li");
+            var task_id = li.attr("data-id");
+            app.db.openDoc(task_id, {
+              success : function(doc) {
+                doc.state = "done";
+                doc.done_by = $("#account").attr("data-name");
+                doc.done_at = new Date();
+                app.db.saveDoc(doc, {
+                  success : function() {
+                    li.addClass("done");
+                    li.slideUp("slow");
+                  }
+                });
+              }
+            });
+            return false;
+          }
+        },
+        'a[href=#reply]' : {
+          click : function() {
+            var li = $(this).parents("li");
+            // append the reply form to the li
+            li.append("<p>Leave a reply:</p>")
+          }
+        }
       }
     }
   };

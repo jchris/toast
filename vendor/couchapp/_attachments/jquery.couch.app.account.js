@@ -61,6 +61,9 @@ jQuery(function($) {
       },
       selectors : {
         'a[href=#logout]' : {click : ["doLogout"]}
+      },
+      after : function(e, r) {
+        $(this).attr("data-name", r.userCtx.name);
       }
     },
     adminParty : function() {
