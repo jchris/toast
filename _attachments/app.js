@@ -51,6 +51,13 @@ $.couch.app(function(app) {
     });
   };
   
+  // todo move this to ddoc templates
+  var task_li = [
+  '<ul>{{#tasks}}<li data-id="{{{id}}}">',
+  '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{name}}</div></div>',
+  '<div class="body">{{{body}}}</div><div class="react">',
+  '<a href="#reply">reply</a> <a href="#mute">mute</a> <a href="#done">done!</a></div>',
+  '<br class="clear"/></li>{{/tasks}}</ul>'].join(' ');
   
   var tasks = {
     init : function() {
@@ -66,13 +73,22 @@ $.couch.app(function(app) {
         }
       });
     },
+    tasks_by_tag : {
+      path : "/tags/:tag",
+      fun : function(e, params) {
+        console.log(params);
+        var widget = $(this);
+        app.view("new-tasks", {
+          limit : 25,
+          descending : true,
+          success : function(resp) {
+            widget.trigger("redraw",[resp.rows]); 
+          }
+        });
+      }
+    },
     redraw : {
-      template : [
-      '<ul>{{#tasks}}<li data-id="{{{id}}}">',
-      '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{name}}</div></div>',
-      '<div class="body">{{{body}}}</div><div class="react">',
-      '<a href="#reply">reply</a> <a href="#mute">mute</a> <a href="#done">done!</a></div>',
-      '<br class="clear"/></li>{{/tasks}}</ul>'].join(' '),
+      template : task_li,
       view : function(e, rows) {
         return {
           tasks : rows.map(function(r) {
