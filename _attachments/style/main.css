@@ -20,21 +20,20 @@ h2 {
   float:right;
 }
 
+#profile img.avatar {
+  float:left;
+}
 
 #content {
   background:#eee;
   clear:both;
 }
 
-#footer {
-  background:#8ab;
-}
-
-#chat {
+#tasks {
   width:65%;
 }
 
-#sidebar {
+#browse {
   float:right;
   width:30%;
 }

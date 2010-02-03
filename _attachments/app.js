@@ -2,6 +2,30 @@ $.couch.app(function(app) {
   var since_seq = 0;  
   
   // setup the profile widget
+  $.couch.app.profile.profileReady.template = 
+  [ '<img class="avatar" src="{{{gravatar_url}}}"/>',
+    '<form><textarea name="body" width="70"></textarea>',
+    '<input type="submit" value="Begin &rarr;"></form>'
+  ].join(' ');
+
+  // we use a custom callback to handle the form submission
+  $.couch.app.profile.profileReady.after = function(e, profile) {
+    $("form", this).submit(function() {
+      var newTask = {
+        body : $("textarea[name=body]", this).val(),
+        type : "task",
+        created_at : new Date(),
+        authorProfile : profile
+      };
+      app.db.saveDoc(newTask, {
+        success : function() {
+          $("#tasks").trigger("refresh");
+        }
+      })
+      return false;
+    });
+  };
+  
   $("#profile").evently($.couch.app.profile);
 
   // link the widgets
@@ -9,6 +33,33 @@ $.couch.app(function(app) {
   
   // setup the account widget
   $("#account").evently($.couch.app.account);
+  
+  var tasks = {
+    init : function() {
+      $(this).trigger("refresh"); 
+    },
+    refresh : function() {
+      var widget = $(this);
+      app.view("new-tasks", {
+        limit : 25,
+        success : function(resp) {
+          widget.trigger("redraw",[resp.rows]); 
+        }
+      });
+    },
+    redraw : {
+      template : '<ul>{{#tasks}}<li>Task: {{body}}</li>{{/tasks}}</ul>',
+      view : function(e, rows) {
+        return {
+          tasks : rows.map(function(r) {
+            return r.value;
+          })
+        };
+      }
+    }
+  };
+  
+  $("#tasks").evently(tasks);
   
   return;
   
