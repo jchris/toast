@@ -73,13 +73,15 @@ $.couch.app(function(app) {
         }
       });
     },
-    tasks_by_tag : {
+    by_tag : {
       path : "/tags/:tag",
       fun : function(e, params) {
-        console.log(params);
         var widget = $(this);
-        app.view("new-tasks", {
+        app.view("tag-cloud", {
           limit : 25,
+          startkey : [params.tag, {}],
+          endkey : [params.tag],
+          reduce : false,
           descending : true,
           success : function(resp) {
             widget.trigger("redraw",[resp.rows]); 
@@ -139,7 +141,7 @@ $.couch.app(function(app) {
     refresh : function() {
       var browse = $(this);
       app.view("tag-cloud", {
-        group : true,
+        group_level : 1,
         success : function(resp) {
           browse.trigger("redraw", [resp.rows]);
         }
