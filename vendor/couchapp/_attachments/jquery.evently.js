@@ -16,7 +16,7 @@ jQuery.fn.evently = function(events, options) {
       templated(self, name, e);
     } else if (typeof e == "function") {
       self.bind(name, e);
-    } else if (e.length) { 
+    } else if ($.isArray(e)) { 
       for (var i=0; i < e.length; i++) {
         // handle arrays recursively
         eventlyHandler(name, e[i]);
@@ -39,12 +39,20 @@ jQuery.fn.evently = function(events, options) {
         // console.log("bind "+name+" to "+selector+" to trigger "+evs);
         $(selector, me).bind(name, function() {
           var ev, self = $(this);
-          for (var i=0; i < evs.length; i++) {
-            ev = evs[i];
-            if (typeof ev == "function") {
-              ev.apply(me, arguments);
+          if ($.isArray(evs)) {
+            for (var i=0; i < evs.length; i++) {
+              ev = evs[i];
+              if (typeof ev == "function") {
+                ev.apply(me, arguments);
+              } else {
+                self.trigger(ev);              
+              }
+            }
+          } else {
+            if (typeof evs == "function") {
+              evs.apply(me, arguments);
             } else {
-              self.trigger(ev);              
+              self.trigger(evs);              
             }
           }
           return false;
