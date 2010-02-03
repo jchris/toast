@@ -1,6 +1,6 @@
 function(doc) {
   if (doc.type == "task") {
-    doc.body.replace(/\#([\w\-\.]+)/g, function(word) {
+    doc.body.replace(/\#([\w\-\.]+)/g, function(tag, word) {
       emit(word.toLowerCase(), 1)
     });
   }

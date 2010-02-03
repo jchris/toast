@@ -121,13 +121,27 @@ $.couch.app(function(app) {
   var browse = {
     init : "refresh",
     refresh : function() {
+      var browse = $(this);
       app.view("tag-cloud", {
         group : true,
         success : function(resp) {
-          console.log(resp.rows);
-          // render the tag cloud
+          browse.trigger("redraw", [resp.rows]);
         }
       });
+    },
+    redraw : {
+      template :
+      '{{#tags}}<a style="font-size:{{{count}}}px;" href="#/tags/{{{tag_uri}}}">#{{tag}}</a> {{/tags}}',
+      view : function(e, rows) {
+        var tags =  rows.map(function(r) {
+          return {
+            tag : r.key,
+            tag_uri : encodeURIComponent(r.key),
+            count : r.value * 10
+          }
+        });
+        return {tags:tags};
+      }
     }
   }
   
@@ -156,5 +170,3 @@ $.couch.app(function(app) {
   });
   
 });
-
-
