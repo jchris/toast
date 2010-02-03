@@ -20,12 +20,16 @@ h2 {
   float:right;
 }
 
-#profile img.avatar {
+/*#profile img.avatar {
+  float:left;
+}*/
+
+img.avatar {
+  padding-right:4px;
   float:left;
 }
 
 #content {
-  background:#eee;
   clear:both;
 }
 
@@ -38,7 +42,7 @@ h2 {
   width:30%;
 }
 
-ul#messages {
+#tasks ul {
   list-style: none;
   margin:0;
   padding:2px;
@@ -48,24 +52,9 @@ ul#messages {
   clear:left;
 }
 
-ul#messages li {
+#tasks li {
   padding:4px;
   margin:4px;
-  background:#fff;
-}
-
-ul#messages img.gravatar {
-  padding-right:4px;
-  float:left;
-}
-
-.perma .say {
-  font-size:180%;
-}
-
-a.perma, .date {
-  font-size:70%;
-  color:#dde;
 }
 
 form {

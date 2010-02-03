@@ -1,7 +1,7 @@
 $.couch.app(function(app) {
-  var since_seq = 0;  
-  
-  // setup the profile widget
+  var since_seq = 0;
+
+  // todo, use the templates ddoc object for this.
   $.couch.app.profile.profileReady.template = 
   [ '<img class="avatar" src="{{{gravatar_url}}}"/>',
     '<form><textarea name="body" width="70"></textarea>',
@@ -10,6 +10,7 @@ $.couch.app(function(app) {
 
   // we use a custom callback to handle the form submission
   $.couch.app.profile.profileReady.after = function(e, profile) {
+    // todo use evently here
     $("form", this).submit(function() {
       var texta =  $("textarea[name=body]", this);
       var newTask = {
@@ -51,13 +52,13 @@ $.couch.app(function(app) {
       });
     },
     redraw : {
-      template : '<ul>{{#tasks}}<li><img src="{{image_url}}"/> {{body}}</li>{{/tasks}}</ul>',
+      template : '<ul>{{#tasks}}<li><img src="{{avatar_url}}"/> {{body}}</li>{{/tasks}}</ul>',
       view : function(e, rows) {
         return {
           tasks : rows.map(function(r) {
             var v = r.value;
             return {
-              image_url : v.authorProfile && v.authorProfile.gravatar_url,
+              avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
               body : r.value.body
             }
           })
@@ -163,7 +164,7 @@ $.couch.app(function(app) {
       // todo use mustache
       var m = row.value;
       var li = '<li>'
-        + '<img class="gravatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
+        + '<img class="avatar" src="http://www.gravatar.com/avatar/'+row.value.author.gravatar+'.jpg?s=40&d=identicon"/><span class="say"><strong>'
         + (m.author.url ? 
           '<a href="'+
           escapeHTML(m.author.url) 
