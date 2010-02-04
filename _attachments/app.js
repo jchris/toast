@@ -45,7 +45,7 @@ $.couch.app(function(app) {
     return body.replace(/((ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?)/gi,function(a) {
       return '<a target="_blank" href="'+a+'">'+a+'</a>';
     }).replace(/\@([\w\-]+)/g,function(user,name) {
-      return '<a href="#/users/'+encodeURIComponent(name)+'">'+user+'</a>';
+      return '<a href="#/mentions/'+encodeURIComponent(name)+'">'+user+'</a>';
     }).replace(/\#([\w\-\.]+)/g,function(word,tag) {
       return '<a href="#/tags/'+encodeURIComponent(tag)+'">'+word+'</a>';
     });
@@ -55,7 +55,6 @@ $.couch.app(function(app) {
     init : {
       template : 
       [ '<p>Leave a reply:</p>',
-        // '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{nickname}}</div></div>',
         '<form><textarea name="body" cols="80" rows="3"></textarea><br/>',
         '<input type="submit" value="Reply"></form><br class="clear"/>'
       ].join(' '),
@@ -109,11 +108,11 @@ $.couch.app(function(app) {
   // todo move this to ddoc templates
   var task_li = [
   '<ul>{{#tasks}}<li data-id="{{{id}}}">',
-  '<div class="avatar"><img src="{{{avatar_url}}}"/><a class="name" href="#/users/{{{name_uri}}}">{{name}}</a></div>',
+  '<div class="avatar"><img src="{{{avatar_url}}}"/><br/><a class="name" href="#/users/{{{name_uri}}}">{{name}}</a></div>',
   '<div class="body">{{{body}}}</div><div class="react">',
   '<a href="#reply">reply</a> <a href="#mute">mute</a> <a href="#done">done!</a></div>',
-  '<br class="clear"/><div class="replies"></div><div class="reply"></div>',
-  '<br class="clear"/></li>{{/tasks}}</ul>'].join(' ');
+  '<div class="clear"/><div class="replies"></div><div class="reply"></div>',
+  '<div class="clear"/><div class="clear"/><div class="clear"/></li>{{/tasks}}</ul>'].join(' ');
   
   var tasks = {
     // init : "refresh",

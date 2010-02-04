@@ -45,7 +45,9 @@ h2 {
 
 #tasks li, #profile {
   padding:4px;
+  padding-bottom:0;
   margin:6px;
+  margin-bottom:0;
   border: 1px solid #fff;
   background-color:#fff;
   -webkit-border-radius:14px;
@@ -72,22 +74,28 @@ div#profile {
 
 #tasks li .body {
   padding:8px;
+  padding-bottom:0;
 }
 
 #tasks li .react a {
   color:#fff;
-  padding:4px;
+  padding:0 4px;
   font-size:0.78em;
 }
 
 #tasks li div.replies li {
-  font-size:0.86em;
+  font-size:0.84em;
   background:none;
   border:1px solid #fff;
 }
 
+#tasks li div.replies {
+  margin-bottom:2px;
+}
+
 div.avatar {
   padding:2px;
+  padding-bottom:0;
   margin-right:4px;
   float:left;
   font-size:0.78em;
