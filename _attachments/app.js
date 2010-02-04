@@ -54,7 +54,7 @@ $.couch.app(function(app) {
   // todo move this to ddoc templates
   var task_li = [
   '<ul>{{#tasks}}<li data-id="{{{id}}}">',
-  '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{name}}</div></div>',
+  '<div class="avatar"><img src="{{{avatar_url}}}"/><a class="name">{{name}}</a></div>',
   '<div class="body">{{{body}}}</div><div class="react">',
   '<a href="#reply">reply</a> <a href="#mute">mute</a> <a href="#done">done!</a></div>',
   '<br class="clear"/></li>{{/tasks}}</ul>'].join(' ');
@@ -83,6 +83,22 @@ $.couch.app(function(app) {
           startkey : [params.tag, {}],
           endkey : [params.tag],
           reduce : false,
+          descending : true,
+          success : function(resp) {
+            widget.trigger("redraw",[resp.rows]); 
+          }
+        });
+      }
+    },
+    by_user : {
+      path : "/users/:name",
+      fun : function(e, params) {
+        var widget = $(this);
+        // var name = $("#account").attr("data-name");
+        app.view("users-tasks", {
+          limit : 25,
+          startkey : [params.name, {}],
+          endkey : [params.name],
           descending : true,
           success : function(resp) {
             widget.trigger("redraw",[resp.rows]); 
