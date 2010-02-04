@@ -6,17 +6,16 @@
 //   $("#userCtx").evently($.couch.app.account);
 //   $("#userCtx").trigger("refresh");
 // 
-jQuery(function($) {
+$.couch.app(function(app) {
+  var t = app.ddoc.vendor.couchapp.templates.account;
+  
   function makeLoginOrSignupFormHandler(action) {
     // A tiny bit of metaprogramming to set up the evently handlers (with
     // mustache) for the signup and login forms. The evently template is
     // returned as a static object, and interpreted when triggered (like 
     // the other evently templates stored in $.couch.app.account).
     return {
-      template :
-        '<form><label for="name">Name</label> <input type="text" name="name" value="">'
-        + '<label for="password">Password</label> <input type="password" name="password" value="">'
-        + '<input type="submit" value="{{action}}"></form>',
+      template : t.login_signup_form,
       view : {action : action},
       selectors : {
         form : {
@@ -43,15 +42,14 @@ jQuery(function($) {
       $(this).trigger("refresh"); 
     },
     loggedOut : {
-      template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
+      template : t.logged_out,
       selectors : {
         "a[href=#signup]" : {click : ["signupForm"]},
          "a[href=#login]" : {click : ["loginForm"]}
       }
     },
     loggedIn : {
-      template : 
-        'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{uri_name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
+      template : t.logged_in,
       view : function(e, r) {
         return {
           name : r.userCtx.name,

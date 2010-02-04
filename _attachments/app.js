@@ -3,21 +3,18 @@ $.couch.app(function(app) {
   var userProfile;
   // todo, use the templates ddoc object for this.
   
-  $.couch.app.profile.loggedOut.template = '<p>Please log in to add tasks.</p>';
+  $.couch.app.profile.loggedOut.template = app.ddoc.templates.logged_out;
   
-  $.couch.app.profile.profileReady.template = 
-  [ '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{nickname}}</div></div>',
-    '<form><textarea name="body" cols="80" rows="3"></textarea><br/>',
-    '<input type="submit" value="New Task &rarr;"></form><br class="clear"/>'
-  ].join(' ');
+  $.couch.app.profile.profileReady.template = app.ddoc.templates.create_task;
 
   // we use a custom callback to handle the form submission
   $.couch.app.profile.profileReady.after = function(e, profile) {
     userProfile = profile;
     // todo use evently here
     $("form", this).submit(function() {
+      var texta = $("textarea[name=body]", this);
       var newTask = {
-        body : $("textarea[name=body]", this).val(),
+        body : texta.val(),
         type : "task",
         created_at : new Date(),
         authorProfile : userProfile
@@ -53,11 +50,7 @@ $.couch.app(function(app) {
   
   var reply = {
     init : {
-      template : 
-      [ '<p>Leave a reply:</p>',
-        '<form><textarea name="body" cols="80" rows="3"></textarea><br/>',
-        '<input type="submit" value="Reply"></form><br class="clear"/>'
-      ].join(' '),
+      template : app.ddoc.templates.create_reply,
       selectors : {
         form : {
           submit : function() {
@@ -85,8 +78,7 @@ $.couch.app(function(app) {
   
   var replies = {
     init : {
-      template : ['<ul>{{#rows}}<li>',
-      '<div class="avatar"><img src="{{{avatar_url}}}"/><a class="name" href="#/users/{{{name_uri}}}">{{name}}</a></div><div class="body">{{{body}}}</div><br class="clear"/></li>{{/rows}}</ul>'].join(' '),
+      template : app.ddoc.templates.replies,
       view : function(e, rows) {
         return {
           rows : rows.map(function(r) {
@@ -103,19 +95,15 @@ $.couch.app(function(app) {
         }
       } 
     }
-  }
-  
-  // todo move this to ddoc templates
-  var task_li = [
-  '<ul>{{#tasks}}<li data-id="{{{id}}}">',
-  '<div class="avatar"><img src="{{{avatar_url}}}"/><br/><a class="name" href="#/users/{{{name_uri}}}">{{name}}</a></div>',
-  '<div class="body">{{{body}}}</div><div class="react">',
-  '<a href="#reply">reply</a> <a href="#mute">mute</a> <a href="#done">done!</a></div>',
-  '<div class="clear"/><div class="replies"></div><div class="reply"></div>',
-  '<div class="clear"/><div class="clear"/><div class="clear"/></li>{{/tasks}}</ul>'].join(' ');
+  };
   
   var tasks = {
-    // init : "refresh",
+    init : "refresh",
+    // refresh : function() {
+    //   $(this).trigger("index")
+    //   // todo this should reflect current path
+    //   // maybe evently can have it built in
+    // },
     refresh : {
       path : "/",
       fun: function() {
@@ -162,22 +150,26 @@ $.couch.app(function(app) {
       }
     },
     redraw : {
-      after : function() {
-        $("li", this).each(function() {
-          var li = $(this);
-          var task_id = $(this).attr("data-id");
-          app.view("task-replies", {
-            startkey : [task_id],
-            endkey : [task_id, {}],
-            success : function(resp) {
-              if (resp.rows.length > 0) {
-                $("div.replies",li).evently(replies, {}, [resp.rows])
-              }
-            }
-          });          
-        });
-      },
-      template : task_li,
+      // todo remove the N view queries in favor of collation like
+      // [task_created_at task_id, created_at] on the main view
+      // todo do this when we move to lists
+      // this is an opp to make list queries part of jquery.couch.js
+      // after : function() {
+      //   $("li", this).each(function() {
+      //     var li = $(this);
+      //     var task_id = $(this).attr("data-id");
+      //     app.view("task-replies", {
+      //       startkey : [task_id],
+      //       endkey : [task_id, {}],
+      //       success : function(resp) {
+      //         if (resp.rows.length > 0) {
+      //           $("div.replies",li).evently(replies, {}, [resp.rows])
+      //         }
+      //       }
+      //     });
+      //   });
+      // },
+      template : app.ddoc.templates.tasks,
       view : function(e, rows) {
         return {
           tasks : rows.map(function(r) {
@@ -238,12 +230,12 @@ $.couch.app(function(app) {
       });
     },
     redraw : {
-      template :
-      '{{#tags}}<a style="font-size:{{{count}}}px;" href="#/tags/{{{tag_uri}}}">#{{tag}}</a> {{/tags}}',
+      template : app.ddoc.templates.tag_cloud,
       view : function(e, rows) {
         var tags =  rows.map(function(r) {
           return {
             tag : r.key,
+            // todo use a new mustache delimiter for this
             tag_uri : encodeURIComponent(r.key),
             count : r.value * 10
           }
@@ -265,6 +257,7 @@ $.couch.app(function(app) {
       var c_xhr = jQuery.ajaxSettings.xhr();
       c_xhr.open("GET", app.db.uri+"_changes?feed=continuous&since="+db_info.update_seq, true);
       c_xhr.send("");
+      // todo use a timeout to prevent rapid triggers
       c_xhr.onreadystatechange = fun;
       setTimeout(function() {
         resetHXR(c_xhr);      

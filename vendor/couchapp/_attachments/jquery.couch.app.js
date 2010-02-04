@@ -19,21 +19,9 @@
 // });
 
 (function($) {
-
-  function f(n) {    // Format integers to have at least two digits.
-      return n < 10 ? '0' + n : n;
-  }
-
-  Date.prototype.toJSON = function() {
-      return this.getUTCFullYear()   + '/' +
-           f(this.getUTCMonth() + 1) + '/' +
-           f(this.getUTCDate())      + ' ' +
-           f(this.getUTCHours())     + ':' +
-           f(this.getUTCMinutes())   + ':' +
-           f(this.getUTCSeconds())   + ' +0000';
-  };
   
   function Design(db, name) {
+    this.doc_id = "_design/"+name;
     this.view = function(view, opts) {
       db.view(name+'/'+view, opts);
     };
@@ -49,6 +37,7 @@
       var design = new Design(db, dname);
       
       // docForm applies CouchDB behavior to HTML forms.
+      // todo make this a couch.app plugin
       function docForm(formSelector, opts) {
         var localFormDoc = {};
         opts = opts || {};
@@ -192,10 +181,42 @@
         docForm : docForm,
         prettyDate : prettyDate
       }, $.couch.app.app);
-    appFun(appExports)
+      
+    if ($.couch.app.ddocs[design.doc_id]) {
+      appExports.ddoc = $.couch.app.ddocs[design.doc_id];
+      appFun(appExports);
+    } else {
+      function handleDDoc(doc) {
+        if (doc) appExports.ddoc = doc;
+        appFun(appExports);
+      };
+      // only open 1 connection for this ddoc 
+      if ($.couch.app.ddoc_handlers[design.doc_id]) {
+        // we are already fetching, just wait
+        $.couch.app.ddoc_handlers[design.doc_id].push(handleDDoc);
+      } else {
+        $.couch.app.ddoc_handlers[design.doc_id] = [handleDDoc];
+      }
+      
+      db.openDoc(design.doc_id, {
+        success : function(doc) {
+          $.couch.app.ddocs[design.doc_id] = doc;
+          $.couch.app.ddoc_handlers[design.doc_id].forEach(function(h) {
+            h(doc);
+          })
+        },
+        error : function() {
+          $.couch.app.ddoc_handlers[design.doc_id].forEach(function(h) {
+            h();
+          })
+        }
+      });
+    }
       
     });
   };
+  $.couch.app.ddocs = {};
+  $.couch.app.ddoc_handlers = {};
   // legacy support. $.CouchApp is deprecated, please use $.couch.app
   $.CouchApp = $.couch.app;
 })(jQuery);
