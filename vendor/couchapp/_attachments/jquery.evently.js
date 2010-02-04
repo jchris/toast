@@ -110,7 +110,7 @@
     paths : []
   };
   
-  $.fn.evently = function(events, options) {
+  $.fn.evently = function(events, options, init_args) {
 
     function forIn(obj, fun) {
       var name;
@@ -133,7 +133,7 @@
         // trigger when the path matches
         registerPath(pathSpec);
       }
-      if (e.template) {
+      if (e.template || e.selectors) {
         templated(self, name, e);
       } else if (e.fun) {
         self.bind(name, e.fun);        
@@ -192,10 +192,12 @@
       ctx.bind(name, function() {
         var args = $.makeArray(arguments);
         var me = $(this), selectors;
-        me.html($.mustache(
-          runIfFun(me, e.template, args),
-          runIfFun(me, e.view, args), 
-          runIfFun(me, e.partials, args)));
+        if (e.template) {
+          me.html($.mustache(
+            runIfFun(me, e.template, args),
+            runIfFun(me, e.view, args), 
+            runIfFun(me, e.partials, args)));
+        }
         selectors = runIfFun(me, e.selectors, args);
         if (selectors) {
           applySelectors(me, selectors);
@@ -210,7 +212,7 @@
     forIn(events, eventlyHandler);
 
     if (events.init) {
-      self.trigger("init");
+      self.trigger("init", init_args);
     }
   };
 })(jQuery);

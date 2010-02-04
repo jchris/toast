@@ -1,6 +1,6 @@
 $.couch.app(function(app) {
   var since_seq = 0;
-
+  var userProfile;
   // todo, use the templates ddoc object for this.
   
   $.couch.app.profile.loggedOut.template = '<p>Please log in to add tasks.</p>';
@@ -13,19 +13,19 @@ $.couch.app(function(app) {
 
   // we use a custom callback to handle the form submission
   $.couch.app.profile.profileReady.after = function(e, profile) {
+    userProfile = profile;
     // todo use evently here
     $("form", this).submit(function() {
-      var texta =  $("textarea[name=body]", this);
       var newTask = {
-        body : texta.val(),
+        body : $("textarea[name=body]", this).val(),
         type : "task",
         created_at : new Date(),
-        authorProfile : profile
+        authorProfile : userProfile
       };
       app.db.saveDoc(newTask, {
         success : function() {
           texta.val('');
-          $("#tasks").trigger("refresh");
+          // $("#tasks").trigger("refresh");
         }
       });
       return false;
@@ -51,16 +51,72 @@ $.couch.app(function(app) {
     });
   };
   
+  var reply = {
+    init : {
+      template : 
+      [ '<p>Leave a reply:</p>',
+        // '<div class="avatar"><img src="{{{avatar_url}}}"/><div class="name">{{nickname}}</div></div>',
+        '<form><textarea name="body" cols="80" rows="3"></textarea><br/>',
+        '<input type="submit" value="Reply"></form><br class="clear"/>'
+      ].join(' '),
+      selectors : {
+        form : {
+          submit : function() {
+            var texta = $("textarea[name=body]", this);
+            var li = $(this).parents("li");
+            var task_id = li.attr("data-id");
+            var newReply = {
+              reply_to : task_id,
+              body : texta.val(),
+              type : "reply",
+              created_at : new Date(),
+              authorProfile : userProfile
+            };
+            app.db.saveDoc(newReply, {
+              success : function() {
+                texta.val('');
+              }
+            });            
+            return false;
+          }
+        }
+      }
+    }
+  };
+  
+  var replies = {
+    init : {
+      template : ['<ul>{{#rows}}<li>',
+      '<div class="avatar"><img src="{{{avatar_url}}}"/><a class="name" href="#/users/{{{name_uri}}}">{{name}}</a></div><div class="body">{{{body}}}</div><br class="clear"/></li>{{/rows}}</ul>'].join(' '),
+      view : function(e, rows) {
+        return {
+          rows : rows.map(function(r) {
+            // todo eliminate duplication here
+            var v = r.value;
+            return {
+              avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
+              body : linkify($.mustache.escape(r.value.body)),
+              name : v.authorProfile && v.authorProfile.name,
+              name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
+              id : r.id
+            }
+          })
+        }
+      } 
+    }
+  }
+  
   // todo move this to ddoc templates
   var task_li = [
   '<ul>{{#tasks}}<li data-id="{{{id}}}">',
   '<div class="avatar"><img src="{{{avatar_url}}}"/><a class="name" href="#/users/{{{name_uri}}}">{{name}}</a></div>',
   '<div class="body">{{{body}}}</div><div class="react">',
   '<a href="#reply">reply</a> <a href="#mute">mute</a> <a href="#done">done!</a></div>',
+  '<br class="clear"/><div class="replies"></div><div class="reply"></div>',
   '<br class="clear"/></li>{{/tasks}}</ul>'].join(' ');
   
   var tasks = {
-    init : "refresh",
+    // init : "refresh",
     refresh : {
       path : "/",
       fun: function() {
@@ -107,6 +163,21 @@ $.couch.app(function(app) {
       }
     },
     redraw : {
+      after : function() {
+        $("li", this).each(function() {
+          var li = $(this);
+          var task_id = $(this).attr("data-id");
+          app.view("task-replies", {
+            startkey : [task_id],
+            endkey : [task_id, {}],
+            success : function(resp) {
+              if (resp.rows.length > 0) {
+                $("div.replies",li).evently(replies, {}, [resp.rows])
+              }
+            }
+          });          
+        });
+      },
       template : task_li,
       view : function(e, rows) {
         return {
@@ -147,7 +218,9 @@ $.couch.app(function(app) {
           click : function() {
             var li = $(this).parents("li");
             // append the reply form to the li
-            li.append("<p>Leave a reply:</p>")
+            // load this template from the ddoc json
+            $("div.reply",li).evently(reply);
+            return false;
           }
         }
       }
@@ -181,7 +254,6 @@ $.couch.app(function(app) {
     }
   }
   
-  $.evently.connect($("#tasks"), $("#browse"), ["refresh"]);
   $("#tasks").evently(tasks);
   $("#browse").evently(browse);
   
@@ -203,6 +275,7 @@ $.couch.app(function(app) {
   
   connectToChanges(app, function() {
     $("#tasks").trigger("refresh");
+    $("#browse").trigger("refresh");
   });
   
 });

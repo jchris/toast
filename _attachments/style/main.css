@@ -20,11 +20,6 @@ h2 {
   float:right;
 }
 
-/*form {
-  padding:10px;
-  background:#ddd;
-}*/
-
 #content {
   clear:both;
 }
@@ -83,6 +78,12 @@ div#profile {
   color:#fff;
   padding:4px;
   font-size:0.78em;
+}
+
+#tasks li div.replies li {
+  font-size:0.86em;
+  background:none;
+  border:1px solid #fff;
 }
 
 div.avatar {
