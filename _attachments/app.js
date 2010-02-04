@@ -54,7 +54,7 @@ $.couch.app(function(app) {
   // todo move this to ddoc templates
   var task_li = [
   '<ul>{{#tasks}}<li data-id="{{{id}}}">',
-  '<div class="avatar"><img src="{{{avatar_url}}}"/><a class="name">{{name}}</a></div>',
+  '<div class="avatar"><img src="{{{avatar_url}}}"/><a class="name" href="#/users/{{{name_uri}}}">{{name}}</a></div>',
   '<div class="body">{{{body}}}</div><div class="react">',
   '<a href="#reply">reply</a> <a href="#mute">mute</a> <a href="#done">done!</a></div>',
   '<br class="clear"/></li>{{/tasks}}</ul>'].join(' ');
@@ -116,6 +116,7 @@ $.couch.app(function(app) {
               avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
               body : linkify($.mustache.escape(r.value.body)),
               name : v.authorProfile && v.authorProfile.name,
+              name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
               id : r.id
             }
           })
