@@ -63,6 +63,10 @@ div#profile {
   background-color:#ddd;  
 }
 
+#profile textarea {
+  width:80%;
+}
+
 #tasks li:hover {
   border: 1px solid #999;
   background-color:#aaa;

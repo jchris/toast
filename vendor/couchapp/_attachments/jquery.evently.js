@@ -37,7 +37,7 @@
         };
         // console.log("path trigger for "+path);
         pathSpec.callback(params);
-        return;
+        return true;
       }
     };
   };
@@ -46,7 +46,7 @@
     _currentPath = getPath();
     // if path is actually changed from what we thought it was, then react
     if (_lastPath != _currentPath) {
-      triggerOnPath(_currentPath);
+      return triggerOnPath(_currentPath);
     }
   }
 
@@ -211,8 +211,8 @@
 
     // setup the handlers onto self
     forIn(events, eventlyHandler);
-
-    if (events.init) {
+    
+    if (!hashChanged() && events.init) {
       self.trigger("init", init_args);
     }
   };

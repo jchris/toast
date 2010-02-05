@@ -7,26 +7,29 @@ $.couch.app(function(app) {
   
   $.couch.app.profile.profileReady.template = app.ddoc.templates.create_task;
 
-  // we use a custom callback to handle the form submission
+  $.couch.app.profile.profileReady.selectors = {
+    form : {
+      submit : function() {
+        var texta = $("textarea[name=body]", this);
+        var newTask = {
+          body : texta.val(),
+          type : "task",
+          created_at : new Date(),
+          authorProfile : userProfile
+        };
+        app.db.saveDoc(newTask, {
+          success : function() {
+            texta.val('');
+          }
+        });
+        return false;
+      }
+    }
+  };
+
   $.couch.app.profile.profileReady.after = function(e, profile) {
+    // userProfile is in the outer closure
     userProfile = profile;
-    // todo use evently here
-    $("form", this).submit(function() {
-      var texta = $("textarea[name=body]", this);
-      var newTask = {
-        body : texta.val(),
-        type : "task",
-        created_at : new Date(),
-        authorProfile : userProfile
-      };
-      app.db.saveDoc(newTask, {
-        success : function() {
-          texta.val('');
-          // $("#tasks").trigger("refresh");
-        }
-      });
-      return false;
-    });
   };
   
   $("#profile").evently($.couch.app.profile);
@@ -57,6 +60,7 @@ $.couch.app(function(app) {
             var texta = $("textarea[name=body]", this);
             var li = $(this).parents("li");
             var task_id = li.attr("data-id");
+            // todo extract to model layer?
             var newReply = {
               reply_to : task_id,
               body : texta.val(),
@@ -243,9 +247,6 @@ $.couch.app(function(app) {
     }
   }
   
-  $("#tasks").evently(tasks);
-  $("#browse").evently(browse);
-  
   function connectToChanges(app, fun) {
     function resetHXR(x) {
       x.abort();
@@ -262,6 +263,9 @@ $.couch.app(function(app) {
       }, 1000 * 60);
     }});
   };
+  
+  $("#tasks").evently(tasks);
+  $("#browse").evently(browse);
   
   connectToChanges(app, function() {
     $("#tasks").trigger("refresh");
