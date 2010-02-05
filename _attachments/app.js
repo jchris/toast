@@ -220,7 +220,7 @@ $.couch.app(function(app) {
     }
   };
   
-  var browse = {
+  var tagcloud = {
     init : "refresh",
     refresh : function() {
       var browse = $(this);
@@ -265,11 +265,11 @@ $.couch.app(function(app) {
   };
   
   $("#tasks").evently(tasks);
-  $("#browse").evently(browse);
+  $("#tagcloud").evently(tagcloud);
   
   connectToChanges(app, function() {
     $("#tasks").trigger("refresh");
-    $("#browse").trigger("refresh");
+    $("#tagcloud").trigger("refresh");
   });
   
 });
