@@ -153,6 +153,22 @@ $.couch.app(function(app) {
         });
       }
     },
+    by_mentions : {
+      path : "/mentions/:name",
+      fun : function(e, params) {
+        var widget = $(this);
+        app.view("user-cloud", {
+          limit : 25,
+          startkey : [params.name, {}],
+          endkey : [params.name],
+          reduce : false,
+          descending : true,
+          success : function(resp) {
+            widget.trigger("redraw", [resp.rows]); 
+          }
+        });
+      }
+    },
     redraw : {
       // todo remove the N view queries in favor of collation like
       // [task_created_at task_id, created_at] on the main view
@@ -223,11 +239,11 @@ $.couch.app(function(app) {
   var tagcloud = {
     init : "refresh",
     refresh : function() {
-      var browse = $(this);
+      var tagcloud = $(this);
       app.view("tag-cloud", {
         group_level : 1,
         success : function(resp) {
-          browse.trigger("redraw", [resp.rows]);
+          tagcloud.trigger("redraw", [resp.rows]);
         }
       });
     },
@@ -245,8 +261,35 @@ $.couch.app(function(app) {
         return {tags:tags};
       }
     }
-  }
-  
+  };
+
+  var usercloud = {
+    init : "refresh",
+    refresh : function() {
+      var usercloud = $(this);
+      app.view("user-cloud", {
+        group_level : 1,
+        success : function(resp) {
+          usercloud.trigger("redraw", [resp.rows]);
+        }
+      });
+    },
+    redraw : {
+      template : app.ddoc.templates.user_cloud,
+      view : function(e, rows) {
+        var users =  rows.map(function(r) {
+          return {
+            user : r.key,
+            // todo use a new mustache delimiter for this
+            user_uri : encodeURIComponent(r.key),
+            count : r.value * 10
+          }
+        });
+        return {users:users};
+      }
+    }
+  };
+
   function connectToChanges(app, fun) {
     function resetHXR(x) {
       x.abort();
@@ -266,10 +309,12 @@ $.couch.app(function(app) {
   
   $("#tasks").evently(tasks);
   $("#tagcloud").evently(tagcloud);
+  $("#usercloud").evently(usercloud);
   
   connectToChanges(app, function() {
     $("#tasks").trigger("refresh");
     $("#tagcloud").trigger("refresh");
+    $("#usercloud").trigger("refresh");
   });
   
 });
