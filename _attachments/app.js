@@ -208,8 +208,6 @@ $.couch.app(function(app) {
         'a[href=#reply]' : {
           click : function() {
             var li = $(this).parents("li");
-            // append the reply form to the li
-            // load this template from the ddoc json
             $("div.reply",li).evently(reply);
             return false;
           }

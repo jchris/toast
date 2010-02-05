@@ -33,7 +33,6 @@ $.couch.app(function(app) {
         };
       }
     },
-    
     noProfile : {
       template : t.no_profile,
       view : function() {

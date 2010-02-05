@@ -38,9 +38,7 @@ $.couch.app(function(app) {
   // handler.
   $.couch.app = $.couch.app || {};
   $.couch.app.account = {
-    init : function() {
-      $(this).trigger("refresh"); 
-    },
+    init : "refresh",
     loggedOut : {
       template : t.logged_out,
       selectors : {

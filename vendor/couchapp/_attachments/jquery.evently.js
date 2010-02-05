@@ -35,6 +35,7 @@
         for (var i=0; i < path_params.length; i++) {
           params[pathSpec.param_names[i]] = decodeURIComponent(path_params[i])
         };
+        // console.log("path trigger for "+path);
         pathSpec.callback(params);
         return;
       }

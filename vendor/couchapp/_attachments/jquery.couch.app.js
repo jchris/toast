@@ -196,21 +196,22 @@
         $.couch.app.ddoc_handlers[design.doc_id].push(handleDDoc);
       } else {
         $.couch.app.ddoc_handlers[design.doc_id] = [handleDDoc];
+        db.openDoc(design.doc_id, {
+          success : function(doc) {
+            $.couch.app.ddocs[design.doc_id] = doc;
+            $.couch.app.ddoc_handlers[design.doc_id].forEach(function(h) {
+              h(doc);
+            })
+            $.couch.app.ddoc_handlers[design.doc_id] = null;
+          },
+          error : function() {
+            $.couch.app.ddoc_handlers[design.doc_id].forEach(function(h) {
+              h();
+            })
+            $.couch.app.ddoc_handlers[design.doc_id] = null;
+          }
+        });
       }
-      
-      db.openDoc(design.doc_id, {
-        success : function(doc) {
-          $.couch.app.ddocs[design.doc_id] = doc;
-          $.couch.app.ddoc_handlers[design.doc_id].forEach(function(h) {
-            h(doc);
-          })
-        },
-        error : function() {
-          $.couch.app.ddoc_handlers[design.doc_id].forEach(function(h) {
-            h();
-          })
-        }
-      });
     }
       
     });
