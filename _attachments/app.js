@@ -153,6 +153,36 @@ $.couch.app(function(app) {
     }
   };
   
+  
+  // tasks
+  //    recent
+  //      template
+  //      data
+  //      items : {
+  //        render : "prepend",
+  //        view : "recent-tasks",
+  //        query : {
+  //          limit : 25,
+  //          descending : true
+  //        },
+  //        template : app.ddoc.templates.task,
+  //        data : function(row) {
+  //          var v = row.value;
+  //          return {
+  //            avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
+  //            body : linkify($.mustache.escape(r.value.body)),
+  //            name : v.authorProfile && v.authorProfile.name,
+  //            name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
+  //            id : r.id
+  //          };
+  //        },
+  //        
+  //      }
+  //    tags
+  //    users
+  //    mentions
+  //  
+  
   var tasks = {
     // init : "index",
     refresh : "index",
