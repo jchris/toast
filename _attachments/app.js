@@ -101,22 +101,71 @@ $.couch.app(function(app) {
     }
   };
   
+  var lastViewId, highKey, inFlight;
+  function newRows(view, opts) {
+    console.log(["newRows", arguments])
+    // on success we'll set the top key
+    var thisViewId, successCallback = opts.success, full = false;
+    function successFun(resp) {
+      inFlight = false;
+      if (resp.rows.length > 0) {
+        if (opts.descending) {
+          highKey = resp.rows[0].key;
+        } else {
+          highKey = resp.rows[resp.rows.length -1].key;
+        }
+      };
+      resp.rows = resp.rows.filter(function(a,b) {
+        return a.key != b.key;
+      });
+      if (successCallback) successCallback(resp, full);
+    };
+    opts.success = successFun;
+    
+    if (opts.descending) {
+      thisViewId = view + (opts.startkey ? opts.startkey.toSource() : "");
+    } else {
+      thisViewId = view + (opts.endkey ? opts.endkey.toSource() : "");
+    }
+    console.log(["thisViewId",thisViewId])
+    // for query we'll set keys
+    if (thisViewId == lastViewId) {
+      // we only want the rows newer than changesKey
+      if (opts.descending) {
+        opts.endkey = highKey;
+        // opts.inclusive_end = false;
+      } else {
+        opts.startkey = highKey;
+      }
+      console.log("more view stuff")
+      if (!inFlight) {
+        inFlight = true;
+        app.view(view, opts);
+      }
+    } else {
+      // full refresh
+      console.log("new view stuff")
+      full = true;
+      lastViewId = thisViewId;
+      highKey = null;
+      inFlight = true;
+      app.view(view, opts);
+    }
+  };
+  
   var tasks = {
-    init : "refresh",
-    // refresh : function() {
-    //   $(this).trigger("index")
-    //   // todo this should reflect current path
-    //   // maybe evently can have it built in
-    // },
-    refresh : {
+    // init : "index",
+    refresh : "index",
+    index : {
       path : "/",
       fun: function() {
         var widget = $(this);
-        app.view("new-tasks", {
+        // query from highest key        
+        newRows("new-tasks", {
           limit : 25,
           descending : true,
-          success : function(resp) {
-            widget.trigger("redraw",[resp.rows]); 
+          success : function(resp, full) {
+            widget.trigger("redraw", [resp.rows, full]);              
           }
         });
       }
@@ -169,70 +218,45 @@ $.couch.app(function(app) {
         });
       }
     },
-    redraw : {
-      // todo remove the N view queries in favor of collation like
-      // [task_created_at task_id, created_at] on the main view
-      // todo do this when we move to lists
-      // this is an opp to make list queries part of jquery.couch.js
-      // after : function() {
-      //   $("li", this).each(function() {
-      //     var li = $(this);
-      //     var task_id = $(this).attr("data-id");
-      //     app.view("task-replies", {
-      //       startkey : [task_id],
-      //       endkey : [task_id, {}],
-      //       success : function(resp) {
-      //         if (resp.rows.length > 0) {
-      //           $("div.replies",li).evently(replies, {}, [resp.rows])
-      //         }
-      //       }
-      //     });
-      //   });
-      // },
-      template : app.ddoc.templates.tasks,
-      view : function(e, rows) {
-        return {
-          tasks : rows.map(function(r) {
-            var v = r.value;
-            return {
-              avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
-              body : linkify($.mustache.escape(r.value.body)),
-              name : v.authorProfile && v.authorProfile.name,
-              name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
-              id : r.id
-            }
-          })
-        };
-      },
-      selectors : {
-        'a[href=#done]' : {
-          click : function() {
-            var li = $(this).parents("li");
-            var task_id = li.attr("data-id");
-            app.db.openDoc(task_id, {
-              success : function(doc) {
-                doc.state = "done";
-                doc.done_by = $("#account").attr("data-name");
-                doc.done_at = new Date();
-                app.db.saveDoc(doc, {
-                  success : function() {
-                    li.addClass("done");
-                    li.slideUp("slow");
-                  }
-                });
-              }
-            });
-            return false;
-          }
-        },
-        'a[href=#reply]' : {
-          click : function() {
-            var li = $(this).parents("li");
-            $("div.reply",li).evently(reply);
-            return false;
-          }
-        }
+    redraw : function(e, rows, full) {
+      if (full) {
+        $(this).html($.mustache(app.ddoc.templates.tasks));
       }
+      var ul = $("ul", this);
+      rows.reverse().forEach(function(r) {
+        var v = r.value;        
+        var li = $($.mustache(app.ddoc.templates.task,{
+          avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
+          body : linkify($.mustache.escape(r.value.body)),
+          name : v.authorProfile && v.authorProfile.name,
+          name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
+          id : r.id
+        }));
+        ul.prepend(li);
+        $('a[href=#done]', li).click(function() {
+          var li = $(this).parents("li");
+          var task_id = li.attr("data-id");
+          app.db.openDoc(task_id, {
+            success : function(doc) {
+              doc.state = "done";
+              doc.done_by = $("#account").attr("data-name");
+              doc.done_at = new Date();
+              app.db.saveDoc(doc, {
+                success : function() {
+                  li.addClass("done");
+                  li.slideUp("slow");
+                }
+              });
+            }
+          });
+          return false;
+        });
+        $('a[href=#reply]', li).click(function() {
+          var li = $(this).parents("li");
+          $("div.reply",li).evently(reply);
+          return false;
+        });
+      });
     }
   };
   
