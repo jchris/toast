@@ -131,7 +131,29 @@ $.couch.app(function(app) {
     redraw : {
       template : app.ddoc.templates.tag_cloud,
       data : function(e, rows) {
-        var tags =  rows.map(function(r) {
+        var tags = rows.map(function(r) {
+          return {
+            tag : r.key,
+            // todo use a new mustache delimiter for this
+            tag_uri : encodeURIComponent(r.key),
+            count : r.value * 10
+          }
+        });
+        return {tags:tags};
+      }
+    }
+  };
+
+  var tagcloud2 = {
+    _init : "_changes",
+    _changes : {
+      template : app.ddoc.templates.tag_cloud,
+      query : {
+        view : "tag-cloud",
+        group_level : 1,
+      },
+      data : function(e, resp) {
+        var tags = resp.rows.map(function(r) {
           return {
             tag : r.key,
             // todo use a new mustache delimiter for this

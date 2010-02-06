@@ -189,10 +189,24 @@
       });
     };
 
+    function setupChanges(me, changes) {
+      // items has fields:
+      // render, query, template, data
+      // todo: scope this to a db
+      $("body").bind("evently.changes", function(change) {
+        changes = runIfFun(me, changes, change);
+        if (changes.query) {
+          // make a view query (with newRows) and then render the template with the results
+        } else {
+          // just render the template with the data (which might be a fun)
+        }
+      });
+    };
+
     function templated(ctx, name, e) {
       ctx.bind(name, function() {
         var args = $.makeArray(arguments);
-        var me = $(this), selectors;
+        var me = $(this), selectors, items;
         if (e.template) {
           me.html($.mustache(
             runIfFun(me, e.template, args),
@@ -204,7 +218,10 @@
           applySelectors(me, selectors);
         }
         if (e.after) {
-          e.after.apply(me, args)
+          e.after.apply(me, args);
+        }
+        if (e.changes) {
+          setupChanges(me, e.changes);
         }
       });
     };
@@ -216,6 +233,59 @@
       self.trigger("init", init_args);
     }
   };
+  
+  
+  // this is for the items handler
+  var lastViewId, highKey, inFlight;
+  function newRows(view, opts) {
+    console.log(["newRows", arguments])
+    // on success we'll set the top key
+    var thisViewId, successCallback = opts.success, full = false;
+    function successFun(resp) {
+      inFlight = false;
+      if (resp.rows.length > 0) {
+        if (opts.descending) {
+          highKey = resp.rows[0].key;
+        } else {
+          highKey = resp.rows[resp.rows.length -1].key;
+        }
+      };
+      resp.rows = resp.rows.filter(function(a,b) {
+        return a.key != b.key;
+      });
+      if (successCallback) successCallback(resp, full);
+    };
+    opts.success = successFun;
+    
+    if (opts.descending) {
+      thisViewId = view + (opts.startkey ? opts.startkey.toSource() : "");
+    } else {
+      thisViewId = view + (opts.endkey ? opts.endkey.toSource() : "");
+    }
+    console.log(["thisViewId",thisViewId])
+    // for query we'll set keys
+    if (thisViewId == lastViewId) {
+      // we only want the rows newer than changesKey
+      if (opts.descending) {
+        opts.endkey = highKey;
+        // opts.inclusive_end = false;
+      } else {
+        opts.startkey = highKey;
+      }
+      console.log("more view stuff")
+      if (!inFlight) {
+        inFlight = true;
+        app.view(view, opts);
+      }
+    } else {
+      // full refresh
+      console.log("new view stuff")
+      full = true;
+      lastViewId = thisViewId;
+      highKey = null;
+      inFlight = true;
+      app.view(view, opts);
+    }
+  };
+  
 })(jQuery);
-
-
