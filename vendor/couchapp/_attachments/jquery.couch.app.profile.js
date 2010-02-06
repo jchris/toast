@@ -25,7 +25,7 @@ $.couch.app(function(app) {
     },
     profileReady : {
       template : t.profile,
-      view : function(e, p) {
+      data : function(e, p) {
         return {
           nickname : p.nickname,
           name : p.name,
@@ -35,7 +35,7 @@ $.couch.app(function(app) {
     },
     noProfile : {
       template : t.no_profile,
-      view : function() {
+      data : function() {
         return userCtx;
       },
       selectors : {

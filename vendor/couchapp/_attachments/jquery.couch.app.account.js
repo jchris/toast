@@ -16,7 +16,7 @@ $.couch.app(function(app) {
     // the other evently templates stored in $.couch.app.account).
     return {
       template : t.login_signup_form,
-      view : {action : action},
+      data : {action : action},
       selectors : {
         form : {
           submit : [function(e) {
@@ -48,7 +48,7 @@ $.couch.app(function(app) {
     },
     loggedIn : {
       template : t.logged_in,
-      view : function(e, r) {
+      data : function(e, r) {
         return {
           name : r.userCtx.name,
           uri_name : encodeURIComponent(r.userCtx.name),

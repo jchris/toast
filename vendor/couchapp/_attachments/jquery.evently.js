@@ -196,7 +196,7 @@
         if (e.template) {
           me.html($.mustache(
             runIfFun(me, e.template, args),
-            runIfFun(me, e.view, args), 
+            runIfFun(me, e.data, args), 
             runIfFun(me, e.partials, args)));
         }
         selectors = runIfFun(me, e.selectors, args);

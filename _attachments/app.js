@@ -83,7 +83,7 @@ $.couch.app(function(app) {
   var replies = {
     init : {
       template : app.ddoc.templates.replies,
-      view : function(e, rows) {
+      data : function(e, rows) {
         return {
           rows : rows.map(function(r) {
             // todo eliminate duplication here
@@ -303,7 +303,7 @@ $.couch.app(function(app) {
     },
     redraw : {
       template : app.ddoc.templates.tag_cloud,
-      view : function(e, rows) {
+      data : function(e, rows) {
         var tags =  rows.map(function(r) {
           return {
             tag : r.key,
@@ -330,7 +330,7 @@ $.couch.app(function(app) {
     },
     redraw : {
       template : app.ddoc.templates.user_cloud,
-      view : function(e, rows) {
+      data : function(e, rows) {
         var users =  rows.map(function(r) {
           return {
             user : r.key,
