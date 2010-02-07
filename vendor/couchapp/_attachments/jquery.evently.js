@@ -5,7 +5,7 @@
     var name;
     for (name in obj) {
       if (obj.hasOwnProperty(name)) {
-        fun(name, obj[name])
+        fun(name, obj[name]);
       }
     }
   };
@@ -49,10 +49,10 @@
     var pathSpec, path_params, params = {};
     for (var i=0; i < $.evently.paths.length; i++) {
       pathSpec = $.evently.paths[i];
-      if ((path_params = pathSpec.matcher.exec(path)) != null) {
+      if ((path_params = pathSpec.matcher.exec(path)) !== null) {
         path_params.shift();
-        for (var i=0; i < path_params.length; i++) {
-          params[pathSpec.param_names[i]] = decodeURIComponent(path_params[i])
+        for (var j=0; j < path_params.length; j++) {
+          params[pathSpec.param_names[j]] = decodeURIComponent(path_params[j]);
         };
         // $.log("path trigger for "+path);
         pathSpec.callback(params);
@@ -96,12 +96,12 @@
   };
 
   function makePathSpec(path, callback) {
-    var param_names = []
-    var template = ""
+    var param_names = [];
+    var template = "";
     
     PATH_NAME_MATCHER.lastIndex = 0;
     
-    while ((path_match = PATH_NAME_MATCHER.exec(path)) != null) {
+    while ((path_match = PATH_NAME_MATCHER.exec(path)) !== null) {
       param_names.push(path_match[1]);
     }
 
@@ -135,6 +135,7 @@
     function eventlyHandler(name, e) {
       if (e.path) {
         bindToPath(self, name, e.path);
+      }
       if (e.template || e.selectors) {
         templated(self, name, e);
       } else if (e.fun) {
@@ -154,16 +155,15 @@
     };
 
     function bindToPath(self, name, path) {
-        var pathSpec = makePathSpec(path, function(params) {
-          self.trigger(name, [params]);
-        });
-        self.bind(name, function(ev, params) {
-          // set the path when triggered
-          setPath(pathSpec, params);
-        });
-        // trigger when the path matches
-        registerPath(pathSpec);
-      }
+      var pathSpec = makePathSpec(path, function(params) {
+        self.trigger(name, [params]);
+      });
+      self.bind(name, function(ev, params) {
+        // set the path when triggered
+        setPath(pathSpec, params);
+      });
+      // trigger when the path matches
+      registerPath(pathSpec);
     };
 
     function applySelectors(me, selectors) {
