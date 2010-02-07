@@ -1,5 +1,14 @@
 (function($) {
   // utility functions used in the implementation
+
+  // thanks @wycats: http://yehudakatz.com/2009/04/20/evented-programming-with-jquery/
+  var $$ = function(param) {
+    var node = $(param)[0];
+    var id = $.data(node);
+    $.cache[id] = $.cache[id] || {};
+    $.cache[id].node = node;
+    return $.cache[id];
+  };
   
   function forIn(obj, fun) {
     var name;
@@ -33,69 +42,78 @@
   };
   
   $.fn.evently = function(events, app, init_args) {
-
     var self = $(this);
 
-    function eventlyHandler(name, e) {
-      if (e.path) {
-        self.pathbinder(name, e.path);
-      }
-      if (e.template || e.selectors) {
-        templated(self, name, e);
-      } else if (e.fun) {
-        self.bind(name, e.fun);        
-      } else if (typeof e == "string") {
-        self.bind(name, function() {
-          $(this).trigger(e);
-        });
-      } else if (typeof e == "function") {
-        self.bind(name, e);
-      } else if ($.isArray(e)) { 
-        for (var i=0; i < e.length; i++) {
-          // handle arrays recursively
-          eventlyHandler(name, e[i]);
-        };
-      }
-    };
-
-    function templated(ctx, name, e) {
-      // $.log("tem", name, e)
-      ctx.bind(name, function() {
-        $.log("template triggered", name, ctx)
-        
-        var args = $.makeArray(arguments);
-        var me = $(this), selectors;
-        if (e.template) {
-          me.html($.mustache(
-            runIfFun(me, e.template, args),
-            runIfFun(me, e.data, args), 
-            runIfFun(me, e.partials, args)));
-        }
-        selectors = runIfFun(me, e.selectors, args);
-        if (selectors) {
-          applySelectors(me, selectors);
-        }
-        if (e.after) {
-          e.after.apply(me, args);
-        }
-        if (e.changes) {
-          // $.log("call setupChanges")
-          setupChanges(me, app, e.changes, args);
-        }
-      });
-    };
-
     // setup the handlers onto self
-    forIn(events, eventlyHandler);
+    forIn(events, function(name, handler) {
+      eventlyHandler(self, name, handler);
+    });
     
     if (events.init) {
       self.trigger("init", init_args);
     }
     
+    // if the widget has a changes listener, 
+    // connect it to the listener for its db
+    
     app && connectToChanges(app, function() {
       // $.log('chnge')
       $("body").trigger("evently.changes");    
     });
+  };
+  
+  function templated(ctx, name, e) {
+    // $.log("tem", name, e)
+    ctx.bind(name, function() {
+      $.log("template triggered", name, ctx)
+      
+      var args = $.makeArray(arguments);
+      var me = $(this), selectors;
+      if (e.template) {
+        me.html($.mustache(
+          runIfFun(me, e.template, args),
+          runIfFun(me, e.data, args), 
+          runIfFun(me, e.partials, args)));
+      }
+      selectors = runIfFun(me, e.selectors, args);
+      if (selectors) {
+        applySelectors(me, selectors);
+      }
+      if (e.after) {
+        e.after.apply(me, args);
+      }
+      if (e.changes) {
+        // $.log("call setupChanges")
+        setupChanges(me, app, e.changes, args);
+      }
+    });
+  };
+  
+  // eventlyHandler applies the user's handler (h) to the 
+  // widget, bound to trigger based on name.
+  // the simples case handler looks
+  function eventlyHandler(elem, name, h) {
+    if (h.path) {
+      me.pathbinder(name, h.path);
+    }
+    
+    
+    if (h.template || h.selectors) {
+      templated(me, name, h);
+    } else if (h.fun) {
+      me.bind(name, h.fun);        
+    } else if (typeof h == "string") {
+      me.bind(name, function() {
+        $(this).trigger(h);
+      });
+    } else if (typeof h == "function") {
+      me.bind(name, h);
+    } else if ($.isArray(h)) { 
+      for (var i=0; i < h.length; i++) {
+        // handle arrays recursively
+        eventlyHandler(me, name, h[i]);
+      };
+    }
   };
   
   function applySelectors(me, selectors) {
