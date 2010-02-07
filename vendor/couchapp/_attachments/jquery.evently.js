@@ -19,102 +19,6 @@
     }
   }
 
-  // functions for handling the path
-  // thanks sammy.js
-  var PATH_REPLACER = "([^\/]+)",
-      PATH_NAME_MATCHER = /:([\w\d]+)/g,
-      QUERY_STRING_MATCHER = /\?([^#]*)$/,
-      _currentPath,
-      _lastPath,
-      _pathInterval;
-
-  function pollPath(every) {
-    function hashCheck() {        
-      _currentPath = getPath();
-      // path changed if _currentPath != _lastPath
-      if (_lastPath != _currentPath) {
-        setTimeout(function() {
-          $(window).trigger('hashchange');
-        }, 1);
-      }
-    };
-    hashCheck();
-    _pathInterval = setInterval(hashCheck, every);
-    $(window).bind('unload', function() {
-      clearInterval(_pathInterval);
-    });
-  }
-
-  function triggerOnPath(path) {
-    var pathSpec, path_params, params = {};
-    for (var i=0; i < $.evently.paths.length; i++) {
-      pathSpec = $.evently.paths[i];
-      if ((path_params = pathSpec.matcher.exec(path)) !== null) {
-        path_params.shift();
-        for (var j=0; j < path_params.length; j++) {
-          params[pathSpec.param_names[j]] = decodeURIComponent(path_params[j]);
-        };
-        // $.log("path trigger for "+path);
-        pathSpec.callback(params);
-        return true;
-      }
-    };
-  };
-
-  function hashChanged() {
-    _currentPath = getPath();
-    // if path is actually changed from what we thought it was, then react
-    if (_lastPath != _currentPath) {
-      return triggerOnPath(_currentPath);
-    }
-  }
-
-  // bind the event
-  $(function() {
-    if ('onhashchange' in window) {
-      // we have a native event
-    } else {
-      pollPath(10);
-    }
-    setTimeout(hashChanged,50);
-    $(window).bind('hashchange', hashChanged);
-  });
-
-  function registerPath(pathSpec) {
-    $.evently.paths.push(pathSpec);
-  };
-
-  function setPath(pathSpec, params) {
-    var newPath = $.mustache(pathSpec.template, params);
-    window.location = '#'+newPath;
-    _lastPath = getPath();
-  };
-  
-  function getPath() {
-    var matches = window.location.toString().match(/^[^#]*(#.+)$/);
-    return matches ? matches[1] : '';
-  };
-
-  function makePathSpec(path, callback) {
-    var param_names = [];
-    var template = "";
-    
-    PATH_NAME_MATCHER.lastIndex = 0;
-    
-    while ((path_match = PATH_NAME_MATCHER.exec(path)) !== null) {
-      param_names.push(path_match[1]);
-    }
-
-    return {
-      param_names : param_names,
-      matcher : new RegExp(path.replace(PATH_NAME_MATCHER, PATH_REPLACER) + "$"),
-      template : path.replace(PATH_NAME_MATCHER, function(a, b) {
-        return '{{'+b+'}}';
-      }),
-      callback : callback
-    };
-  };
-
   $.evently = {
     connect : function(source, target, events) {
       events.forEach(function(e) {
@@ -134,7 +38,7 @@
 
     function eventlyHandler(name, e) {
       if (e.path) {
-        bindToPath(self, name, e.path);
+        $(this).pathbinder(name, e.path);
       }
       if (e.template || e.selectors) {
         templated(self, name, e);
@@ -154,17 +58,7 @@
       }
     };
 
-    function bindToPath(self, name, path) {
-      var pathSpec = makePathSpec(path, function(params) {
-        self.trigger(name, [params]);
-      });
-      self.bind(name, function(ev, params) {
-        // set the path when triggered
-        setPath(pathSpec, params);
-      });
-      // trigger when the path matches
-      registerPath(pathSpec);
-    };
+
 
     function applySelectors(me, selectors) {
       forIn(selectors, function(selector, bindings) {
@@ -220,18 +114,19 @@
     // setup the handlers onto self
     forIn(events, eventlyHandler);
     
-    if (!hashChanged() && events.init) {
+    if (!($.pathbinder && $.pathbinder.hashChanged()) && events.init) {
       self.trigger("init", init_args);
     }
   };
   
   function changesQuery(me, app, c) {
     $.log("changesQuery")
-    var viewName = c.query.view;
-    delete c.query.view;
-    var userSuccess = c.query.success;
-    delete c.query.success;
-    c.query.success = function(resp) {
+    var q = runIfFun(me, c.query, [params]); // todo get the params from the path event
+    var viewName = q.view;
+    delete q.view;
+    var userSuccess = q.success;
+    delete q.success;
+    q.success = function(resp) {
       // here is where we handle the per-row templates
       var act = c.render || "append";
       if (c.template) {
@@ -249,7 +144,7 @@
       }
       userSuccess && userSuccess(resp);
     };
-    newRows(app, viewName, c.query);
+    newRows(app, viewName, q);
   }  
 
   function setupChanges(me, app, changes) {
@@ -258,10 +153,12 @@
     // render, query, template, data
     $.log(changes)
     // todo: scope this to a db
+
     $("body").bind("evently.changes", function(change) {
       var c = runIfFun(me, changes, [change]);
       if (c.query) {
-        changesQuery(me, app, c)     
+        // todo the initial setup might want to run slightly differently (use path info)
+        changesQuery(me, app, c)
       } else {
         // just render the template with the data (which might be a fun)
       }

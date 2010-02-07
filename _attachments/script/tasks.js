@@ -1,17 +1,16 @@
-$.log = console.log || function() {};
+$.log = function() {
+  console.log(arguments);
+};
 $.couch.app(function(app) {
-  var tasks = {
-    recent : {
-      path : "/",
+  
+  function tasksHandler(path, query) {
+    return {
+      path : path,
       template : app.ddoc.templates.tasks,
-      changes : { // this abstacts _changes
+      changes : {
         template : app.ddoc.templates.task,
         render : "prepend",
-        query : {
-          view : "recent-tasks", // todo we can use the view to filter changes
-          limit : 25,
-          descending : true
-        },
+        query : query,
         data : function(r) {
           var v = r.value;
           return {
@@ -21,10 +20,27 @@ $.couch.app(function(app) {
             name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
             id : r.id // todo this should be handled in dom-land / evently
           };
-        },
+        }
       }
     }
   };
+
+  var tasks = {
+    recent : tasksHandler("/", {
+      view : "recent-tasks", // todo we can use the view to filter changes
+      limit : 25,
+      descending : true
+    }),
+    tags : tasksHandler("/tags/:tag", function(e, params) {
+      return {
+        view : "tag-cloud", // todo we can use the view to filter changes
+        limit : 25,
+        startkey : [params.tag, {}],
+        endkey : [params.tag],
+        reduce : false,
+        descending : true
+      }
+    })
 
   $("#tasks").evently(tasks, app);
   
