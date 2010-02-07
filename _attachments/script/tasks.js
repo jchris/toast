@@ -20,27 +20,79 @@ $.couch.app(function(app) {
             name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
             id : r.id // todo this should be handled in dom-land / evently
           };
+        },
+        selectors : {
+          'a[href=#done]' : {
+            click : function() {
+              var li = $(this).parents("li");
+              var task_id = li.attr("data-id");
+              app.db.openDoc(task_id, {
+                success : function(doc) {
+                  doc.state = "done";
+                  doc.done_by = $("#account").attr("data-name");
+                  doc.done_at = new Date();
+                  app.db.saveDoc(doc, {
+                    success : function() {
+                      li.addClass("done");
+                      li.slideUp("slow");
+                    }
+                  });
+                }
+              });
+              return false;
+            }
+          },
+          'a[href=#reply]' : {
+            click : function() {
+              var li = $(this).parents("li");
+              $("div.reply",li).evently(reply);
+              return false;            
+            }
+          }
         }
       }
-    }
+    };
   };
 
   var tasks = {
     recent : tasksHandler("/", {
-      view : "recent-tasks", // todo we can use the view to filter changes
+      view : "recent-tasks", 
       limit : 25,
       descending : true
     }),
     tags : tasksHandler("/tags/:tag", function(e, params) {
+      $.log("tags query", e, params);
       return {
-        view : "tag-cloud", // todo we can use the view to filter changes
+        view : "tag-cloud",
         limit : 25,
         startkey : [params.tag, {}],
         endkey : [params.tag],
         reduce : false,
         descending : true
       }
+    }),
+    users : tasksHandler("/users/:name", function(e, params) {
+      $.log("users query", e, params);
+      return {
+        view : "users-tasks",
+        limit : 25,
+        startkey : [params.name, {}],
+        endkey : [params.name],
+        descending : true
+      }
+    }),
+    mentions : tasksHandler("/mentions/:name", function(e, params) {
+      $.log("mentions query", e, params);
+      return {
+        view : "users-tasks",
+        limit : 25,
+        startkey : [params.name, {}],
+        endkey : [params.name],
+        descending : true,
+        reduce : false
+      }
     })
+  };
 
   $("#tasks").evently(tasks, app);
   
@@ -125,28 +177,8 @@ $.couch.app(function(app) {
           id : r.id
         }));
         ul.prepend(li);
-        $('a[href=#done]', li).click(function() {
-          var li = $(this).parents("li");
-          var task_id = li.attr("data-id");
-          app.db.openDoc(task_id, {
-            success : function(doc) {
-              doc.state = "done";
-              doc.done_by = $("#account").attr("data-name");
-              doc.done_at = new Date();
-              app.db.saveDoc(doc, {
-                success : function() {
-                  li.addClass("done");
-                  li.slideUp("slow");
-                }
-              });
-            }
-          });
-          return false;
-        });
+        $('a[href=#done]', li).click();
         $('a[href=#reply]', li).click(function() {
-          var li = $(this).parents("li");
-          $("div.reply",li).evently(reply);
-          return false;
         });
       });
     }

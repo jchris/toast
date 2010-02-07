@@ -38,7 +38,7 @@
 
     function eventlyHandler(name, e) {
       if (e.path) {
-        $(this).pathbinder(name, e.path);
+        self.pathbinder(name, e.path);
       }
       if (e.template || e.selectors) {
         templated(self, name, e);
@@ -58,40 +58,13 @@
       }
     };
 
-
-
-    function applySelectors(me, selectors) {
-      forIn(selectors, function(selector, bindings) {
-        forIn(bindings, function(name, evs) {
-          // $.log("bind "+name+" to "+selector+" to trigger "+evs);
-          $(selector, me).bind(name, function() {
-            var ev, self = $(this);
-            if ($.isArray(evs)) {
-              for (var i=0; i < evs.length; i++) {
-                ev = evs[i];
-                if (typeof ev == "function") {
-                  ev.apply(self, arguments);
-                } else {
-                  self.trigger(ev);              
-                }
-              }
-            } else {
-              if (typeof evs == "function") {
-                evs.apply(self, arguments);
-              } else {
-                self.trigger(evs);              
-              }
-            }
-            return false;
-          });
-        });
-      });
-    };
-
     function templated(ctx, name, e) {
+      // $.log("tem", name, e)
       ctx.bind(name, function() {
+        $.log("template triggered", name, ctx)
+        
         var args = $.makeArray(arguments);
-        var me = $(this), selectors, items;
+        var me = $(this), selectors;
         if (e.template) {
           me.html($.mustache(
             runIfFun(me, e.template, args),
@@ -106,7 +79,8 @@
           e.after.apply(me, args);
         }
         if (e.changes) {
-          setupChanges(me, app, e.changes);
+          $.log("call setupChanges")
+          setupChanges(me, app, e.changes, args);
         }
       });
     };
@@ -114,19 +88,54 @@
     // setup the handlers onto self
     forIn(events, eventlyHandler);
     
-    if (!($.pathbinder && $.pathbinder.hashChanged()) && events.init) {
+    if (events.init) {
       self.trigger("init", init_args);
     }
+    
+    app && connectToChanges(app, function() {
+      $.log('chnge')
+      $("body").trigger("evently.changes");    
+    });
   };
   
-  function changesQuery(me, app, c) {
+  function applySelectors(me, selectors) {
+    forIn(selectors, function(selector, bindings) {
+      forIn(bindings, function(name, evs) {
+        $.log("bind "+name+" to "+selector);
+        $(selector, me).bind(name, function() {
+          var ev, self = $(this);
+          if ($.isArray(evs)) {
+            for (var i=0; i < evs.length; i++) {
+              ev = evs[i];
+              if (typeof ev == "function") {
+                ev.apply(self, arguments);
+              } else {
+                self.trigger(ev);              
+              }
+            }
+          } else {
+            if (typeof evs == "function") {
+              evs.apply(self, arguments);
+            } else {
+              self.trigger(evs);              
+            }
+          }
+          return false;
+        });
+      });
+    });
+  };
+  
+  function changesQuery(me, app, c, args) {
     $.log("changesQuery")
-    var q = runIfFun(me, c.query, [params]); // todo get the params from the path event
+    var q = runIfFun(me, c.query, args);
+    $.log(q)
     var viewName = q.view;
     delete q.view;
     var userSuccess = q.success;
     delete q.success;
     q.success = function(resp) {
+      $.log("q.suc", resp)
       // here is where we handle the per-row templates
       var act = c.render || "append";
       if (c.template) {
@@ -144,25 +153,27 @@
       }
       userSuccess && userSuccess(resp);
     };
+    // todo: scope this to a db
+    $("body").bind("evently.changes", function() {
+      // todo we can use the view to filter changes
+      newRows(app, viewName, q);
+      // todo delete other bindings?
+      // todo make this a single callback per widget
+    });
     newRows(app, viewName, q);
   }  
 
-  function setupChanges(me, app, changes) {
+  function setupChanges(me, app, handler, args) {
     $.log("setupChanges")
-    // items has fields:
+    // handler has fields:
     // render, query, template, data
-    $.log(changes)
-    // todo: scope this to a db
-
-    $("body").bind("evently.changes", function(change) {
-      var c = runIfFun(me, changes, [change]);
-      if (c.query) {
-        // todo the initial setup might want to run slightly differently (use path info)
-        changesQuery(me, app, c)
-      } else {
-        // just render the template with the data (which might be a fun)
-      }
-    });
+    var c = runIfFun(me, handler, args);
+    if (c.query) {
+      // todo the initial setup might want to run slightly differently (use path info)
+      changesQuery(me, app, c, args)
+    } else {
+      // just render the template with the data (which might be a fun)
+    }
   };
   
   // this is for the items handler
@@ -217,8 +228,22 @@
       app.view(view, opts);
     }
   };
-  setTimeout(function() {
-    console.log('trigger("evently.changes")')
-    $("body").trigger("evently.changes");
-  },100);
+  
+  function connectToChanges(app, fun) {
+    function resetHXR(x) {
+      x.abort();
+      connectToChanges(app, fun);    
+    };
+    app.db.info({success: function(db_info) {  
+      var c_xhr = jQuery.ajaxSettings.xhr();
+      c_xhr.open("GET", app.db.uri+"_changes?feed=continuous&since="+db_info.update_seq, true);
+      c_xhr.send("");
+      // todo use a timeout to prevent rapid triggers
+      c_xhr.onreadystatechange = fun;
+      setTimeout(function() {
+        resetHXR(c_xhr);      
+      }, 1000 * 60);
+    }});
+  };
+  
 })(jQuery);

@@ -8,10 +8,17 @@
       _lastPath,
       _pathInterval;
 
-  $.pathbinder = {
-    paths : [],
-    hashChanged : hashChanged
+  function hashChanged() {
+    _currentPath = getPath();
+    // if path is actually changed from what we thought it was, then react
+    if (_lastPath != _currentPath) {
+      return triggerOnPath(_currentPath);
+    }
   }
+  
+  $.pathbinder = {
+    paths : []
+  };
 
   function pollPath(every) {
     function hashCheck() {        
@@ -39,20 +46,12 @@
         for (var j=0; j < path_params.length; j++) {
           params[pathSpec.param_names[j]] = decodeURIComponent(path_params[j]);
         };
-        $.log("path trigger for "+path);
+        // $.log("path trigger for "+path);
         pathSpec.callback(params);
         return true;
       }
     };
   };
-
-  function hashChanged() {
-    _currentPath = getPath();
-    // if path is actually changed from what we thought it was, then react
-    if (_lastPath != _currentPath) {
-      return triggerOnPath(_currentPath);
-    }
-  }
 
   // bind the event
   $(function() {
@@ -103,12 +102,12 @@
   $.fn.pathbinder = function(name, path) {
     self = $(this);
     var pathSpec = makePathSpec(path, function(params) {
-      $.log("path cb", name, path)
+      $.log("path cb", name, path, self)
       self.trigger(name, [params]);
     });
     self.bind(name, function(ev, params) {
       // set the path when triggered
-      $.log("set path", pathSpec)
+      // $.log("set path", name, pathSpec)
       setPath(pathSpec, params);
     });
     // trigger when the path matches

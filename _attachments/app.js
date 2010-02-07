@@ -176,23 +176,6 @@ $.couch.app(function(app) {
       }
     }
   };
-
-  function connectToChanges(app, fun) {
-    function resetHXR(x) {
-      x.abort();
-      connectToChanges(app, fun);    
-    };
-    app.db.info({success: function(db_info) {  
-      var c_xhr = jQuery.ajaxSettings.xhr();
-      c_xhr.open("GET", app.db.uri+"_changes?feed=continuous&since="+db_info.update_seq, true);
-      c_xhr.send("");
-      // todo use a timeout to prevent rapid triggers
-      c_xhr.onreadystatechange = fun;
-      setTimeout(function() {
-        resetHXR(c_xhr);      
-      }, 1000 * 60);
-    }});
-  };
   
   $("#tagcloud").evently(tagcloud);
   $("#usercloud").evently(usercloud);
