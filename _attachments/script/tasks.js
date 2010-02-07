@@ -4,52 +4,64 @@ $.log = function() {
 $.couch.app(function(app) {
   
   function tasksHandler(path, query) {
+    // this is a kind of changes feed handler 
+    // that works with at the row level
+    // with views where the new changes we care about
+    // will always appear at one end
+    var task_changes = {
+      mustache : app.ddoc.templates.task,
+      render : "prepend",
+      query : query,
+      data : function(r) {
+        var v = r.value;
+        return {
+          avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
+          body : $.linkify($.mustache.escape(r.value.body)),
+          name : v.authorProfile && v.authorProfile.name,
+          name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
+          id : r.id // todo this should be handled in dom-land / evently
+        };
+      },
+      selectors : {
+        'a[href=#done]' : {
+          click : function() {
+            var li = $(this).parents("li");
+            var task_id = li.attr("data-id");
+            app.db.openDoc(task_id, {
+              success : function(doc) {
+                doc.state = "done";
+                doc.done_by = $("#account").attr("data-name");
+                doc.done_at = new Date();
+                app.db.saveDoc(doc, {
+                  success : function() {
+                    li.addClass("done");
+                    li.slideUp("slow");
+                  }
+                });
+              }
+            });
+            return false;
+          }
+        },
+        'a[href=#reply]' : {
+          click : function() {
+            var li = $(this).parents("li");
+            $("div.reply",li).evently(reply);
+            return false;            
+          }
+        }
+      }
+    }
     return {
       path : path,
       mustache : app.ddoc.templates.tasks,
-      changes : {
-        mustache : app.ddoc.templates.task,
-        render : "prepend",
-        query : query,
-        data : function(r) {
-          var v = r.value;
-          return {
-            avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
-            body : $.linkify($.mustache.escape(r.value.body)),
-            name : v.authorProfile && v.authorProfile.name,
-            name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
-            id : r.id // todo this should be handled in dom-land / evently
-          };
-        },
-        selectors : {
-          'a[href=#done]' : {
-            click : function() {
-              var li = $(this).parents("li");
-              var task_id = li.attr("data-id");
-              app.db.openDoc(task_id, {
-                success : function(doc) {
-                  doc.state = "done";
-                  doc.done_by = $("#account").attr("data-name");
-                  doc.done_at = new Date();
-                  app.db.saveDoc(doc, {
-                    success : function() {
-                      li.addClass("done");
-                      li.slideUp("slow");
-                    }
-                  });
-                }
-              });
-              return false;
-            }
-          },
-          'a[href=#reply]' : {
-            click : function() {
-              var li = $(this).parents("li");
-              $("div.reply",li).evently(reply);
-              return false;            
-            }
-          }
+      selectors : {
+        ul : {
+          changes : task_changes
         }
+      },
+      changes : {
+        // we could have root element level changes here
       }
     };
   };

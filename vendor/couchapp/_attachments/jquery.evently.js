@@ -88,26 +88,37 @@
       // when our named event is triggered.
       elem.bind(name, function() {
         var me = $(this);
-        if (h.mustache) {
-          mustachioed(me, h, arguments);
-        }
-        var selectors = runIfFun(me, h.selectors, arguments);
-        if (selectors) {
-          applySelectors(me, selectors);
-        }
-        if (h.after) {
-          h.after.apply(me, args);
-        }
-        var changes = runIfFun(me, h.changes, arguments);
-        if (changes) {
-          setupChanges(me, app, changes, arguments);
-        }
+        renderElement(me, app, h, arguments);
+
       });
     }
-    
-
   };
   
+  // todo: ability to call this
+  // to render and "prepend/append/etc" a new element to the host element (me)
+  // as well as call this in a way that replaces the host elements content
+  // this would be easy if there is a simple way to get at the element we just appended
+  // (as html) so that we can attache the selectors
+  function renderElement(me, app, h, args) {
+    if (h.mustache) {
+      mustachioed(me, h, args);
+    }
+    var selectors = runIfFun(me, h.selectors, args);
+    if (selectors) {
+      applySelectors(me, app, selectors);
+    }
+    if (h.after) {
+      h.after.apply(me, args);
+    }
+    // todo why is changes a top level element?
+    // move this inside renderElement to make it recursive
+    var changes = runIfFun(me, h.changes, arguments);
+    if (changes) {
+      setupChanges(me, app, changes, arguments);
+    }
+  };
+  
+  // todo this should return the new element
   function mustachioed(me, h, args) {
     me.html($.mustache(
       runIfFun(me, h.mustache, args),
@@ -115,30 +126,12 @@
       runIfFun(me, h.partials, args)));
   };
   
-  function applySelectors(me, selectors) {
-    forIn(selectors, function(selector, bindings) {
-      forIn(bindings, function(name, evs) {
-        // $.log("bind "+name+" to "+selector);
-        $(selector, me).bind(name, function() {
-          var ev, self = $(this);
-          if ($.isArray(evs)) {
-            for (var i=0; i < evs.length; i++) {
-              ev = evs[i];
-              if (typeof ev == "function") {
-                ev.apply(self, arguments);
-              } else {
-                self.trigger(ev);              
-              }
-            }
-          } else {
-            if (typeof evs == "function") {
-              evs.apply(self, arguments);
-            } else {
-              self.trigger(evs);              
-            }
-          }
-          return false;
-        });
+  function applySelectors(me, app, selectors) {
+    forIn(selectors, function(selector, handlers) {
+      var elem = $(selector, me);
+      // setup selectors recursively
+      forIn(handlers, function(name, h) {
+        eventlyHandler(elem, app, name, h);
       });
     });
   };
@@ -156,13 +149,16 @@
       // here is where we handle the per-row templates
       var act = c.render || "append";
 
+      renderElement(elem, app, c, [row])
+
       // we need to generalize this
+      // this can be the a generic element renderer
       if (c.mustache) {
         resp.rows.reverse().forEach(function(row) {
           var item = $(mustachioed(me, c, [row]));
           selectors = runIfFun(me, c.selectors, [row]);
           if (selectors) {
-            applySelectors(item, selectors);
+            applySelectors(item, app, selectors);
           }
           me[act](item);
         });
