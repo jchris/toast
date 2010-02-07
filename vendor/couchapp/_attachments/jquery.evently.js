@@ -42,15 +42,15 @@
   };
   
   $.fn.evently = function(events, app, init_args) {
-    var self = $(this);
+    var elem = $(this);
 
-    // setup the handlers onto self
-    forIn(events, function(name, handler) {
-      eventlyHandler(self, name, handler);
+    // setup the handlers onto elem
+    forIn(events, function(name, h) {
+      eventlyHandler(elem, app, name, h);
     });
     
     if (events.init) {
-      self.trigger("init", init_args);
+      elem.trigger("init", init_args);
     }
     
     // if the widget has a changes listener, 
@@ -62,20 +62,23 @@
     });
   };
   
-  function templated(ctx, name, e) {
-    // $.log("tem", name, e)
-    ctx.bind(name, function() {
-      $.log("template triggered", name, ctx)
-      
+  // eventlyHandler applies the user's handler (h) to the 
+  // elem, bound to trigger based on name.
+  function eventlyHandler(elem, app, name, h) {
+    if (h.path) {
+      elem.pathbinder(name, h.path);
+    }
+    
+    // templates, selectors, etc are intepreted
+    // when our named event is triggered.
+    elem.bind(name, function() {
       var args = $.makeArray(arguments);
-      var me = $(this), selectors;
-      if (e.template) {
-        me.html($.mustache(
-          runIfFun(me, e.template, args),
-          runIfFun(me, e.data, args), 
-          runIfFun(me, e.partials, args)));
+      var me = $(this);
+      var template = runIfFun(me, h.template, args);
+      if (template) {
+        templated(me, name, h);
       }
-      selectors = runIfFun(me, e.selectors, args);
+      var selectors = runIfFun(me, h.selectors, args);
       if (selectors) {
         applySelectors(me, selectors);
       }
@@ -83,36 +86,41 @@
         e.after.apply(me, args);
       }
       if (e.changes) {
-        // $.log("call setupChanges")
         setupChanges(me, app, e.changes, args);
       }
     });
-  };
-  
-  // eventlyHandler applies the user's handler (h) to the 
-  // widget, bound to trigger based on name.
-  // the simples case handler looks
-  function eventlyHandler(elem, name, h) {
-    if (h.path) {
-      me.pathbinder(name, h.path);
-    }
     
     
-    if (h.template || h.selectors) {
-      templated(me, name, h);
+    
+
+
+    // 
     } else if (h.fun) {
-      me.bind(name, h.fun);        
+      elem.bind(name, h.fun);        
     } else if (typeof h == "string") {
-      me.bind(name, function() {
+      elem.bind(name, function() {
         $(this).trigger(h);
       });
     } else if (typeof h == "function") {
-      me.bind(name, h);
+      elem.bind(name, h);
     } else if ($.isArray(h)) { 
+      // handle arrays recursively
       for (var i=0; i < h.length; i++) {
-        // handle arrays recursively
-        eventlyHandler(me, name, h[i]);
+        eventlyHandler(elem, app, name, h[i]);
       };
+    }
+  };
+  
+  function templated(ctx, name, e) {
+    $.log("template triggered", name, ctx)
+    
+    var args = $.makeArray(arguments);
+    var me = $(this), selectors;
+    if (e.template) {
+      me.html($.mustache(
+        runIfFun(me, e.template, args),
+        runIfFun(me, e.data, args), 
+        runIfFun(me, e.partials, args)));
     }
   };
   
