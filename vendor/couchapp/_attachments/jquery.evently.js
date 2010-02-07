@@ -68,38 +68,9 @@
     if (h.path) {
       elem.pathbinder(name, h.path);
     }
-    
-    // templates, selectors, etc are intepreted
-    // when our named event is triggered.
-    elem.bind(name, function() {
-      var args = $.makeArray(arguments);
-      var me = $(this);
-      var template = runIfFun(me, h.template, args);
-      if (template) {
-        templated(me, name, h);
-      }
-      var selectors = runIfFun(me, h.selectors, args);
-      if (selectors) {
-        applySelectors(me, selectors);
-      }
-      if (e.after) {
-        e.after.apply(me, args);
-      }
-      if (e.changes) {
-        setupChanges(me, app, e.changes, args);
-      }
-    });
-    
-    
-    
-
-
-    // 
-    } else if (h.fun) {
-      elem.bind(name, h.fun);        
-    } else if (typeof h == "string") {
+    if (typeof h == "string") {
       elem.bind(name, function() {
-        $(this).trigger(h);
+        $(this).trigger(h, arguments);
       });
     } else if (typeof h == "function") {
       elem.bind(name, h);
@@ -108,20 +79,40 @@
       for (var i=0; i < h.length; i++) {
         eventlyHandler(elem, app, name, h[i]);
       };
+    } else {
+      // an object is using the evently / mustache template system
+      if (h.fun) {
+        elem.bind(name, h.fun);
+      }
+      // templates, selectors, etc are intepreted
+      // when our named event is triggered.
+      elem.bind(name, function() {
+        var me = $(this);
+        if (h.mustache) {
+          mustachioed(me, h, arguments);
+        }
+        var selectors = runIfFun(me, h.selectors, arguments);
+        if (selectors) {
+          applySelectors(me, selectors);
+        }
+        if (h.after) {
+          h.after.apply(me, args);
+        }
+        var changes = runIfFun(me, h.changes, arguments);
+        if (changes) {
+          setupChanges(me, app, changes, arguments);
+        }
+      });
     }
+    
+
   };
   
-  function templated(ctx, name, e) {
-    $.log("template triggered", name, ctx)
-    
-    var args = $.makeArray(arguments);
-    var me = $(this), selectors;
-    if (e.template) {
-      me.html($.mustache(
-        runIfFun(me, e.template, args),
-        runIfFun(me, e.data, args), 
-        runIfFun(me, e.partials, args)));
-    }
+  function mustachioed(me, h, args) {
+    me.html($.mustache(
+      runIfFun(me, h.mustache, args),
+      runIfFun(me, h.data, args), 
+      runIfFun(me, h.partials, args)));
   };
   
   function applySelectors(me, selectors) {
@@ -164,12 +155,11 @@
       // $.log("q.suc", resp)
       // here is where we handle the per-row templates
       var act = c.render || "append";
-      if (c.template) {
+
+      // we need to generalize this
+      if (c.mustache) {
         resp.rows.reverse().forEach(function(row) {
-          var item = $($.mustache(
-            runIfFun(me, c.template, [row]),
-            runIfFun(me, c.data, [row]), 
-            runIfFun(me, c.partials, [row])));
+          var item = $(mustachioed(me, c, [row]));
           selectors = runIfFun(me, c.selectors, [row]);
           if (selectors) {
             applySelectors(item, selectors);

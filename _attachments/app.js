@@ -3,9 +3,9 @@ $.couch.app(function(app) {
   var userProfile;
   // todo, use the templates ddoc object for this.
   
-  $.couch.app.profile.loggedOut.template = app.ddoc.templates.logged_out;
+  $.couch.app.profile.loggedOut.mustache = app.ddoc.templates.logged_out;
   
-  $.couch.app.profile.profileReady.template = app.ddoc.templates.create_task;
+  $.couch.app.profile.profileReady.mustache = app.ddoc.templates.create_task;
 
   $.couch.app.profile.profileReady.selectors = {
     form : {
@@ -54,7 +54,7 @@ $.couch.app(function(app) {
   
   var replies = {
     init : {
-      template : app.ddoc.templates.replies,
+      mustache : app.ddoc.templates.replies,
       data : function(e, rows) {
         return {
           rows : rows.map(function(r) {
@@ -85,7 +85,7 @@ $.couch.app(function(app) {
       });
     },
     redraw : {
-      template : app.ddoc.templates.tag_cloud,
+      mustache : app.ddoc.templates.tag_cloud,
       data : function(e, rows) {
         var tags = rows.map(function(r) {
           return {
@@ -103,7 +103,7 @@ $.couch.app(function(app) {
   var tagcloud2 = {
     _init : "_changes",
     _changes : {
-      template : app.ddoc.templates.tag_cloud,
+      mustache : app.ddoc.templates.tag_cloud,
       query : {
         view : "tag-cloud",
         group_level : 1,
@@ -134,7 +134,7 @@ $.couch.app(function(app) {
       });
     },
     redraw : {
-      template : app.ddoc.templates.user_cloud,
+      mustache : app.ddoc.templates.user_cloud,
       data : function(e, rows) {
         var users =  rows.map(function(r) {
           return {

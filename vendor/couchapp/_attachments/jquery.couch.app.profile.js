@@ -21,10 +21,10 @@ $.couch.app(function(app) {
       });
     },
     loggedOut : {
-      template : t.logged_out
+      mustache : t.logged_out
     },
     profileReady : {
-      template : t.profile,
+      mustache : t.profile,
       data : function(e, p) {
         return {
           nickname : p.nickname,
@@ -34,7 +34,7 @@ $.couch.app(function(app) {
       }
     },
     noProfile : {
-      template : t.no_profile,
+      mustache : t.no_profile,
       data : function() {
         return userCtx;
       },

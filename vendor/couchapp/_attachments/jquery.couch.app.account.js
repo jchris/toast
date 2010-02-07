@@ -15,7 +15,7 @@ $.couch.app(function(app) {
     // returned as a static object, and interpreted when triggered (like 
     // the other evently templates stored in $.couch.app.account).
     return {
-      template : t.login_signup_form,
+      mustache : t.login_signup_form,
       data : {action : action},
       selectors : {
         form : {
@@ -40,14 +40,14 @@ $.couch.app(function(app) {
   $.couch.app.account = {
     init : "refresh",
     loggedOut : {
-      template : t.logged_out,
+      mustache : t.logged_out,
       selectors : {
         "a[href=#signup]" : {click : ["signupForm"]},
          "a[href=#login]" : {click : ["loginForm"]}
       }
     },
     loggedIn : {
-      template : t.logged_in,
+      mustache : t.logged_in,
       data : function(e, r) {
         return {
           name : r.userCtx.name,

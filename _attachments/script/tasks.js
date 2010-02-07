@@ -6,9 +6,9 @@ $.couch.app(function(app) {
   function tasksHandler(path, query) {
     return {
       path : path,
-      template : app.ddoc.templates.tasks,
+      mustache : app.ddoc.templates.tasks,
       changes : {
-        template : app.ddoc.templates.task,
+        mustache : app.ddoc.templates.task,
         render : "prepend",
         query : query,
         data : function(r) {
@@ -98,7 +98,7 @@ $.couch.app(function(app) {
   
   var reply = {
     init : {
-      template : app.ddoc.templates.create_reply,
+      mustache : app.ddoc.templates.create_reply,
       selectors : {
         form : {
           submit : function() {
