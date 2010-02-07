@@ -101,22 +101,6 @@ $.couch.app(function(app) {
     }
   };
   
-
-  
-  
-  // tasks
-  //    recent
-  //      template
-  //      data
-
-  //        
-  //      }
-  //    tags
-  //    users
-  //    mentions
-  //  
-
-  
   var tagcloud = {
     init : "refresh",
     refresh : function() {
@@ -212,11 +196,12 @@ $.couch.app(function(app) {
   
   $("#tagcloud").evently(tagcloud);
   $("#usercloud").evently(usercloud);
-  // 
+
   // connectToChanges(app, function() {
-  //   $("#tasks").trigger("refresh");
-  //   $("#tagcloud").trigger("refresh");
-  //   $("#usercloud").trigger("refresh");
+  //   $.log("tr cha")
+  //   $("body").trigger("evently.changes");
   // });
-  // 
+
+
+
 });

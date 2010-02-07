@@ -1,4 +1,23 @@
 (function($) {
+  // utility functions used in the implementation
+  
+  function forIn(obj, fun) {
+    var name;
+    for (name in obj) {
+      if (obj.hasOwnProperty(name)) {
+        fun(name, obj[name])
+      }
+    }
+  };
+  
+  function runIfFun(me, fun, args) {
+    // if the field is a function, call it, bound to the widget
+    if (typeof fun == "function") {
+      return fun.apply(me, args);
+    } else {
+      return fun;
+    }
+  }
 
   // functions for handling the path
   // thanks sammy.js
@@ -35,7 +54,7 @@
         for (var i=0; i < path_params.length; i++) {
           params[pathSpec.param_names[i]] = decodeURIComponent(path_params[i])
         };
-        // console.log("path trigger for "+path);
+        // $.log("path trigger for "+path);
         pathSpec.callback(params);
         return true;
       }
@@ -76,7 +95,7 @@
     return matches ? matches[1] : '';
   };
 
-  function makePathSpec(self, name, path) {
+  function makePathSpec(path, callback) {
     var param_names = []
     var template = ""
     
@@ -92,9 +111,7 @@
       template : path.replace(PATH_NAME_MATCHER, function(a, b) {
         return '{{'+b+'}}';
       }),
-      callback : function(params) {
-        self.trigger(name, [params]);
-      }
+      callback : callback
     };
   };
 
@@ -111,29 +128,13 @@
     paths : []
   };
   
-  $.fn.evently = function(events, options, init_args) {
-
-    function forIn(obj, fun) {
-      var name;
-      for (name in obj) {
-        if (obj.hasOwnProperty(name)) {
-          fun(name, obj[name])
-        }
-      }
-    };
+  $.fn.evently = function(events, app, init_args) {
 
     var self = $(this);
 
     function eventlyHandler(name, e) {
       if (e.path) {
-        var pathSpec = makePathSpec(self, name, e.path);
-        self.bind(name, function(ev, params) {
-          // set the path when triggered
-          setPath(pathSpec, params);
-        });
-        // trigger when the path matches
-        registerPath(pathSpec);
-      }
+        bindToPath(self, name, e.path);
       if (e.template || e.selectors) {
         templated(self, name, e);
       } else if (e.fun) {
@@ -152,19 +153,23 @@
       }
     };
 
-    function runIfFun(me, fun, args) {
-      // if the field is a function, call it, bound to the widget
-      if (typeof fun == "function") {
-        return fun.apply(me, args);
-      } else {
-        return fun;
+    function bindToPath(self, name, path) {
+        var pathSpec = makePathSpec(path, function(params) {
+          self.trigger(name, [params]);
+        });
+        self.bind(name, function(ev, params) {
+          // set the path when triggered
+          setPath(pathSpec, params);
+        });
+        // trigger when the path matches
+        registerPath(pathSpec);
       }
-    }
+    };
 
     function applySelectors(me, selectors) {
       forIn(selectors, function(selector, bindings) {
         forIn(bindings, function(name, evs) {
-          // console.log("bind "+name+" to "+selector+" to trigger "+evs);
+          // $.log("bind "+name+" to "+selector+" to trigger "+evs);
           $(selector, me).bind(name, function() {
             var ev, self = $(this);
             if ($.isArray(evs)) {
@@ -207,7 +212,7 @@
           e.after.apply(me, args);
         }
         if (e.changes) {
-          setupChanges(me, e.changes);
+          setupChanges(me, app, e.changes);
         }
       });
     };
@@ -220,31 +225,43 @@
     }
   };
   
-  
-  // function newRowSuccess(cb, resp) {
-  // 
-  //   cb(resp)
-  // };
+  function changesQuery(me, app, c) {
+    $.log("changesQuery")
+    var viewName = c.query.view;
+    delete c.query.view;
+    var userSuccess = c.query.success;
+    delete c.query.success;
+    c.query.success = function(resp) {
+      // here is where we handle the per-row templates
+      var act = c.render || "append";
+      if (c.template) {
+        resp.rows.reverse().forEach(function(row) {
+          var item = ($.mustache(
+            runIfFun(me, c.template, [row]),
+            runIfFun(me, c.data, [row]), 
+            runIfFun(me, c.partials, [row])));
+          selectors = runIfFun(me, c.selectors, [row]);
+          if (selectors) {
+            applySelectors(item, selectors);
+          }
+          me[act](item);
+        });
+      }
+      userSuccess && userSuccess(resp);
+    };
+    newRows(app, viewName, c.query);
+  }  
 
-  function setupChanges(me, changes) {
+  function setupChanges(me, app, changes) {
+    $.log("setupChanges")
     // items has fields:
     // render, query, template, data
+    $.log(changes)
     // todo: scope this to a db
     $("body").bind("evently.changes", function(change) {
-      c = runIfFun(me, changes, change);
+      var c = runIfFun(me, changes, [change]);
       if (c.query) {
-        // make a view query (with newRows) and then render the template with the results
-        // query from highest key        
-
-        
-        c.query.success
-        newRows(c.query.view, {
-          limit : 25,
-          descending : true,
-          success : function(resp, full) {
-            widget.trigger("redraw", [resp.rows, full]);              
-          }
-        });
+        changesQuery(me, app, c)     
       } else {
         // just render the template with the data (which might be a fun)
       }
@@ -253,8 +270,8 @@
   
   // this is for the items handler
   var lastViewId, highKey, inFlight;
-  function newRows(view, opts) {
-    console.log(["newRows", arguments])
+  function newRows(app, view, opts) {
+    $.log(["newRows", arguments])
     // on success we'll set the top key
     var thisViewId, successCallback = opts.success, full = false;
     function successFun(resp) {
@@ -278,7 +295,7 @@
     } else {
       thisViewId = view + (opts.endkey ? opts.endkey.toSource() : "");
     }
-    console.log(["thisViewId",thisViewId])
+    // $.log(["thisViewId",thisViewId])
     // for query we'll set keys
     if (thisViewId == lastViewId) {
       // we only want the rows newer than changesKey
@@ -288,14 +305,14 @@
       } else {
         opts.startkey = highKey;
       }
-      console.log("more view stuff")
+      // $.log("more view stuff")
       if (!inFlight) {
         inFlight = true;
         app.view(view, opts);
       }
     } else {
       // full refresh
-      console.log("new view stuff")
+      // $.log("new view stuff")
       full = true;
       lastViewId = thisViewId;
       highKey = null;
@@ -303,5 +320,8 @@
       app.view(view, opts);
     }
   };
-  
+  setTimeout(function() {
+    console.log('trigger("evently.changes")')
+    $("body").trigger("evently.changes");
+  },100);
 })(jQuery);

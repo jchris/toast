@@ -1,5 +1,5 @@
+$.log = console.log || function() {};
 $.couch.app(function(app) {
-
   var tasks = {
     recent : {
       path : "/",
@@ -12,8 +12,8 @@ $.couch.app(function(app) {
           limit : 25,
           descending : true
         },
-        data : function(row) {
-          var v = row.value;
+        data : function(r) {
+          var v = r.value;
           return {
             avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
             body : $.linkify($.mustache.escape(r.value.body)),
@@ -25,6 +25,8 @@ $.couch.app(function(app) {
       }
     }
   };
+
+  $("#tasks").evently(tasks, app);
   
   
   var oldtasks = {
@@ -134,6 +136,5 @@ $.couch.app(function(app) {
     }
   };
   
-  $("#tasks").evently(tasks);
   
 });
