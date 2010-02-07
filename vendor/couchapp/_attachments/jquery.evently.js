@@ -189,20 +189,6 @@
       });
     };
 
-    function setupChanges(me, changes) {
-      // items has fields:
-      // render, query, template, data
-      // todo: scope this to a db
-      $("body").bind("evently.changes", function(change) {
-        changes = runIfFun(me, changes, change);
-        if (changes.query) {
-          // make a view query (with newRows) and then render the template with the results
-        } else {
-          // just render the template with the data (which might be a fun)
-        }
-      });
-    };
-
     function templated(ctx, name, e) {
       ctx.bind(name, function() {
         var args = $.makeArray(arguments);
@@ -234,6 +220,36 @@
     }
   };
   
+  
+  // function newRowSuccess(cb, resp) {
+  // 
+  //   cb(resp)
+  // };
+
+  function setupChanges(me, changes) {
+    // items has fields:
+    // render, query, template, data
+    // todo: scope this to a db
+    $("body").bind("evently.changes", function(change) {
+      c = runIfFun(me, changes, change);
+      if (c.query) {
+        // make a view query (with newRows) and then render the template with the results
+        // query from highest key        
+
+        
+        c.query.success
+        newRows(c.query.view, {
+          limit : 25,
+          descending : true,
+          success : function(resp, full) {
+            widget.trigger("redraw", [resp.rows, full]);              
+          }
+        });
+      } else {
+        // just render the template with the data (which might be a fun)
+      }
+    });
+  };
   
   // this is for the items handler
   var lastViewId, highKey, inFlight;

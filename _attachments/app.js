@@ -212,11 +212,11 @@ $.couch.app(function(app) {
   
   $("#tagcloud").evently(tagcloud);
   $("#usercloud").evently(usercloud);
-  
-  connectToChanges(app, function() {
-    $("#tasks").trigger("refresh");
-    $("#tagcloud").trigger("refresh");
-    $("#usercloud").trigger("refresh");
-  });
-  
+  // 
+  // connectToChanges(app, function() {
+  //   $("#tasks").trigger("refresh");
+  //   $("#tagcloud").trigger("refresh");
+  //   $("#usercloud").trigger("refresh");
+  // });
+  // 
 });
