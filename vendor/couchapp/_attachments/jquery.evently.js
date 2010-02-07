@@ -140,7 +140,7 @@
       var act = c.render || "append";
       if (c.template) {
         resp.rows.reverse().forEach(function(row) {
-          var item = ($.mustache(
+          var item = $($.mustache(
             runIfFun(me, c.template, [row]),
             runIfFun(me, c.data, [row]), 
             runIfFun(me, c.partials, [row])));
@@ -191,8 +191,8 @@
           highKey = resp.rows[resp.rows.length -1].key;
         }
       };
-      resp.rows = resp.rows.filter(function(a,b) {
-        return a.key != b.key;
+      resp.rows = resp.rows.filter(function(r) {
+        return r.key != highKey;
       });
       if (successCallback) successCallback(resp, full);
     };

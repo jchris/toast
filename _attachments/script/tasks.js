@@ -84,7 +84,7 @@ $.couch.app(function(app) {
     mentions : tasksHandler("/mentions/:name", function(e, params) {
       $.log("mentions query", e, params);
       return {
-        view : "users-tasks",
+        view : "user-cloud",
         limit : 25,
         startkey : [params.name, {}],
         endkey : [params.name],
