@@ -79,7 +79,7 @@
           e.after.apply(me, args);
         }
         if (e.changes) {
-          $.log("call setupChanges")
+          // $.log("call setupChanges")
           setupChanges(me, app, e.changes, args);
         }
       });
@@ -93,7 +93,7 @@
     }
     
     app && connectToChanges(app, function() {
-      $.log('chnge')
+      // $.log('chnge')
       $("body").trigger("evently.changes");    
     });
   };
@@ -101,7 +101,7 @@
   function applySelectors(me, selectors) {
     forIn(selectors, function(selector, bindings) {
       forIn(bindings, function(name, evs) {
-        $.log("bind "+name+" to "+selector);
+        // $.log("bind "+name+" to "+selector);
         $(selector, me).bind(name, function() {
           var ev, self = $(this);
           if ($.isArray(evs)) {
@@ -127,15 +127,15 @@
   };
   
   function changesQuery(me, app, c, args) {
-    $.log("changesQuery")
+    // $.log("changesQuery")
     var q = runIfFun(me, c.query, args);
-    $.log(q)
+    // $.log(q)
     var viewName = q.view;
     delete q.view;
     var userSuccess = q.success;
     delete q.success;
     q.success = function(resp) {
-      $.log("q.suc", resp)
+      // $.log("q.suc", resp)
       // here is where we handle the per-row templates
       var act = c.render || "append";
       if (c.template) {
@@ -164,7 +164,7 @@
   }  
 
   function setupChanges(me, app, handler, args) {
-    $.log("setupChanges")
+    // $.log("setupChanges")
     // handler has fields:
     // render, query, template, data
     var c = runIfFun(me, handler, args);
@@ -179,11 +179,14 @@
   // this is for the items handler
   var lastViewId, highKey, inFlight;
   function newRows(app, view, opts) {
-    $.log(["newRows", arguments])
+    // $.log(["newRows", arguments])
     // on success we'll set the top key
     var thisViewId, successCallback = opts.success, full = false;
     function successFun(resp) {
       inFlight = false;
+      resp.rows = resp.rows.filter(function(r) {
+        return r.key != highKey;
+      });
       if (resp.rows.length > 0) {
         if (opts.descending) {
           highKey = resp.rows[0].key;
@@ -191,9 +194,6 @@
           highKey = resp.rows[resp.rows.length -1].key;
         }
       };
-      resp.rows = resp.rows.filter(function(r) {
-        return r.key != highKey;
-      });
       if (successCallback) successCallback(resp, full);
     };
     opts.success = successFun;

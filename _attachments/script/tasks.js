@@ -1,5 +1,5 @@
 $.log = function() {
-  console.log(arguments);
+  // console.log(arguments);
 };
 $.couch.app(function(app) {
   
@@ -61,7 +61,7 @@ $.couch.app(function(app) {
       descending : true
     }),
     tags : tasksHandler("/tags/:tag", function(e, params) {
-      $.log("tags query", e, params);
+      // $.log("tags query", e, params);
       return {
         view : "tag-cloud",
         limit : 25,
@@ -72,7 +72,7 @@ $.couch.app(function(app) {
       }
     }),
     users : tasksHandler("/users/:name", function(e, params) {
-      $.log("users query", e, params);
+      // $.log("users query", e, params);
       return {
         view : "users-tasks",
         limit : 25,
@@ -82,7 +82,7 @@ $.couch.app(function(app) {
       }
     }),
     mentions : tasksHandler("/mentions/:name", function(e, params) {
-      $.log("mentions query", e, params);
+      // $.log("mentions query", e, params);
       return {
         view : "user-cloud",
         limit : 25,
