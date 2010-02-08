@@ -41,7 +41,7 @@
     paths : []
   };
   
-  $.fn.evently = function(events, app, init_args) {
+  $.fn.evently = function(events, app) {
     var elem = $(this);
 
     // setup the handlers onto elem
@@ -50,16 +50,16 @@
     });
     
     if (events.init) {
-      elem.trigger("init", init_args);
+      elem.trigger("init");
     }
     
     // if the widget has a changes listener, 
     // connect it to the listener for its db
     
-    app && connectToChanges(app, function() {
-      // $.log('chnge')
-      $("body").trigger("evently.changes");    
-    });
+    // app && connectToChanges(app, function() {
+    //   // $.log('chnge')
+    //   $("body").trigger("evently.changes");    
+    // });
   };
   
   // eventlyHandler applies the user's handler (h) to the 
@@ -115,13 +115,15 @@
       // otherwise we just render the template with the current args
       if (h.mustache) {
         var newElem = mustachioed(me, h, args);
-        $.log(newElem)
+        $.log("mus",newElem)
         var act = h.render || "replace";
         me[act](newElem);
       }
       var selectors = runIfFun(me, h.selectors, args);
       if (selectors) {
-        applySelectors(me, app, selectors);
+        forIn(selectors, function(selector, handlers) {
+          $(selector, me).evently(handlers, app);
+        });
       }
       if (h.after) {
         h.after.apply(me, args);
@@ -145,30 +147,31 @@
       runIfFun(me, h.partials, args)));
   };
   
-  function applySelectors(me, app, selectors) {
-    forIn(selectors, function(selector, handlers) {
-      var elem = $(selector, me);
-      // setup selectors recursively
-      forIn(handlers, function(name, h) {
-        $.log("selector",name, h)
-        eventlyHandler(elem, app, name, h);
-      });
-    });
-  };
-  
   function runQuery(me, app, h, args) {
     $.log("runQuery", arguments)
     var q = runIfFun(me, h.query, args);
+    var qType = q.type;
+    delete q.type;
     var viewName = q.view;
     delete q.view;
     var userSuccess = q.success;
     delete q.success;
-    q.success = function(resp) {
-      $.log("runQuery success", resp)
-      renderElement(me, app, h, [resp], true);
-      userSuccess && userSuccess(resp);
-    };
-    app.view(viewName, q);
+    if (qType == "newRows") {
+      q.success = function(resp) {
+        resp.rows.reverse().forEach(function(row) {
+          renderElement(me, app, h, [row], true)
+        });
+        userSuccess && userSuccess(resp);
+      };
+      newRows(app, viewName, q);
+    } else {
+      q.success = function(resp) {
+        $.log("runQuery success", resp)
+        renderElement(me, app, h, [resp], true);
+        userSuccess && userSuccess(resp);
+      };
+      app.view(viewName, q);      
+    }
   }
   
   function changesQuery(me, app, c, args) {
@@ -181,9 +184,7 @@
     q.success = function(resp) {
       $.log("changesQuery success", resp)
       if (c.mustache) {
-        resp.rows.reverse().forEach(function(row) {
-          renderElement(elem, app, c, [row])
-        });
+
       }
       userSuccess && userSuccess(resp);
     };

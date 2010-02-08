@@ -8,15 +8,17 @@ $.couch.app(function(app) {
     // that works with at the row level
     // with views where the new changes we care about
     // will always appear at one end
+
+    // type can be view, newRows, document, or info
+    // if there is .query, default is view
+    query.type = "newRows";
+
     var task_changes = {
       mustache : app.ddoc.templates.task,
-      type : "newRows",
-      // type can be view, newRows, document, or info
-      // if there is .query, default is view
       render : "prepend",
       query : query,
       data : function(r) {
-        $.log("data", arguments)
+        $.log("tas data", arguments)
         var v = r.value;
         return {
           avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
@@ -62,7 +64,7 @@ $.couch.app(function(app) {
       selectors : {
         ul : {
           // todo does this drive changes?
-          changes : task_changes
+          init : task_changes
         }
       }
     };
@@ -136,6 +138,27 @@ $.couch.app(function(app) {
           }
         }
       }
+    }
+  };
+  
+  var replies = {
+    init : {
+      mustache : app.ddoc.templates.replies,
+      data : function(e, rows) {
+        return {
+          rows : rows.map(function(r) {
+            // todo eliminate duplication here
+            var v = r.value;
+            return {
+              avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
+              body : $.linkify($.mustache.escape(r.value.body)),
+              name : v.authorProfile && v.authorProfile.name,
+              name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
+              id : r.id
+            }
+          })
+        }
+      } 
     }
   };
   
