@@ -49,8 +49,8 @@
       eventlyHandler(elem, app, name, h);
     });
     
-    if (events.init) {
-      elem.trigger("init");
+    if (events._init) {
+      elem.trigger("_init");
     }
     
     // if the widget has a changes listener, 

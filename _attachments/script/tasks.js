@@ -64,7 +64,7 @@ $.couch.app(function(app) {
       selectors : {
         ul : {
           // todo does this drive changes?
-          init : task_changes
+          _init: task_changes
         }
       }
     };
@@ -113,7 +113,7 @@ $.couch.app(function(app) {
   $("#tasks").evently(tasks, app);
   
   var reply = {
-    init : {
+    _init: {
       mustache : app.ddoc.templates.create_reply,
       selectors : {
         form : {
@@ -142,7 +142,7 @@ $.couch.app(function(app) {
   };
   
   var replies = {
-    init : {
+    _init: {
       mustache : app.ddoc.templates.replies,
       data : function(e, rows) {
         return {

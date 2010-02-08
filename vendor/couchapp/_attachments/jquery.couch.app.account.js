@@ -38,7 +38,7 @@ $.couch.app(function(app) {
   // handler.
   $.couch.app = $.couch.app || {};
   $.couch.app.account = {
-    init : "refresh",
+    _init: "refresh",
     loggedOut : {
       mustache : t.logged_out,
       selectors : {
