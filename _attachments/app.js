@@ -32,14 +32,14 @@ $.couch.app(function(app) {
     userProfile = profile;
   };
   
-  $("#profile").evently($.couch.app.profile);
-
-  // link the widgets
-  $.evently.connect($("#account"), $("#profile"), ["loggedIn", "loggedOut"]);
-  
-  // setup the account widget
-  $("#account").evently($.couch.app.account);
-  
+  // $("#profile").evently($.couch.app.profile);
+  // 
+  // // link the widgets
+  // $.evently.connect($("#account"), $("#profile"), ["loggedIn", "loggedOut"]);
+  // 
+  // // setup the account widget
+  // $("#account").evently($.couch.app.account);
+  // 
   // todo move to a plugin somewhere
   $.linkify = function(body) {
     return body.replace(/((ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?)/gi,function(a) {
@@ -73,42 +73,42 @@ $.couch.app(function(app) {
     }
   };
   
-  var tagcloud = {
-    init : "refresh",
-    refresh : function() {
-      var tagcloud = $(this);
-      app.view("tag-cloud", {
-        group_level : 1,
-        success : function(resp) {
-          tagcloud.trigger("redraw", [resp.rows]);
-        }
-      });
-    },
-    redraw : {
-      mustache : app.ddoc.templates.tag_cloud,
-      data : function(e, rows) {
-        var tags = rows.map(function(r) {
-          return {
-            tag : r.key,
-            // todo use a new mustache delimiter for this
-            tag_uri : encodeURIComponent(r.key),
-            count : r.value * 10
-          }
-        });
-        return {tags:tags};
-      }
-    }
-  };
+  // var tagcloud = {
+  //   init : "refresh",
+  //   refresh : function() {
+  //     var tagcloud = $(this);
+  //     app.view("tag-cloud", {
+  //       group_level : 1,
+  //       success : function(resp) {
+  //         tagcloud.trigger("redraw", [resp.rows]);
+  //       }
+  //     });
+  //   },
+  //   redraw : {
+  //     mustache : app.ddoc.templates.tag_cloud,
+  //     data : function(e, rows) {
+  //       var tags = rows.map(function(r) {
+  //         return {
+  //           tag : r.key,
+  //           // todo use a new mustache delimiter for this
+  //           tag_uri : encodeURIComponent(r.key),
+  //           count : r.value * 10
+  //         }
+  //       });
+  //       return {tags:tags};
+  //     }
+  //   }
+  // };
 
-  var tagcloud2 = {
-    _init : "_changes",
-    _changes : {
-      mustache : app.ddoc.templates.tag_cloud,
+  var tagcloud = {
+    init : {
       query : {
         view : "tag-cloud",
         group_level : 1,
       },
-      data : function(e, resp) {
+      mustache : app.ddoc.templates.tag_cloud,
+      data : function(resp) {
+        $.log("tagcloud data", arguments)
         var tags = resp.rows.map(function(r) {
           return {
             tag : r.key,
@@ -121,25 +121,19 @@ $.couch.app(function(app) {
       }
     }
   };
-
+  
   var usercloud = {
-    init : "refresh",
-    refresh : function() {
-      var usercloud = $(this);
-      app.view("user-cloud", {
+    init : "foo",
+    foo : {
+      query : {
+        view : "user-cloud",
         group_level : 1,
-        success : function(resp) {
-          usercloud.trigger("redraw", [resp.rows]);
-        }
-      });
-    },
-    redraw : {
+      },
       mustache : app.ddoc.templates.user_cloud,
-      data : function(e, rows) {
-        var users =  rows.map(function(r) {
+      data : function(resp) {
+        var users = resp.rows.map(function(r) {
           return {
             user : r.key,
-            // todo use a new mustache delimiter for this
             user_uri : encodeURIComponent(r.key),
             count : r.value * 10
           }
@@ -149,8 +143,8 @@ $.couch.app(function(app) {
     }
   };
   
-  $("#tagcloud").evently(tagcloud);
-  $("#usercloud").evently(usercloud);
+  $("#tagcloud").evently(tagcloud, app);
+  $("#usercloud").evently(usercloud, app);
 
   // connectToChanges(app, function() {
   //   $.log("tr cha")

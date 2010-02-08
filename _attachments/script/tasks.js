@@ -11,7 +11,8 @@ $.couch.app(function(app) {
     var task_changes = {
       mustache : app.ddoc.templates.task,
       type : "newRows",
-      // type can be newRows, document, or info
+      // type can be view, newRows, document, or info
+      // if there is .query, default is view
       render : "prepend",
       query : query,
       data : function(r) {

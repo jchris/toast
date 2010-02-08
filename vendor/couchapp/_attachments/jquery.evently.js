@@ -89,7 +89,6 @@
       elem.bind(name, function() {
         var me = $(this);
         renderElement(me, app, h, arguments);
-
       });
     }
   };
@@ -103,29 +102,39 @@
   // as well as call this in a way that replaces the host elements content
   // this would be easy if there is a simple way to get at the element we just appended
   // (as html) so that we can attache the selectors
-  function renderElement(me, app, h, args) {
-    $.log("render Element", arguments)
+  function renderElement(me, app, h, args, qrun) {
     
-    if (h.mustache) {
-      var newElem = mustachioed(me, h, args);
-      $.log(newElem)
-      var act = h.render || "replace";
-      me[act](newElem);
-    }
-    var selectors = runIfFun(me, h.selectors, args);
-    if (selectors) {
-      applySelectors(me, app, selectors);
-    }
-    if (h.after) {
-      h.after.apply(me, args);
-    }
-    // todo why is changes a top level element?
-    // move this inside renderElement to make it recursive
-    var changes = runIfFun(me, h.changes, arguments);
-    if (changes) {
-      $.log("render Element w/ changes", h)
-      setupChanges(me, app, changes, arguments);
-    }
+    // if there's a query object we run the query,
+    // and then call the data function with the response.
+    if (h.query && !qrun) {
+      $.log("query before renderElement", arguments)
+      runQuery(me, app, h, args)
+    } else {
+      $.log("renderElement")
+      $.log(h, args, qrun)
+      // otherwise we just render the template with the current args
+      if (h.mustache) {
+        var newElem = mustachioed(me, h, args);
+        $.log(newElem)
+        var act = h.render || "replace";
+        me[act](newElem);
+      }
+      var selectors = runIfFun(me, h.selectors, args);
+      if (selectors) {
+        applySelectors(me, app, selectors);
+      }
+      if (h.after) {
+        h.after.apply(me, args);
+      }
+      
+      // changes is gonna be a new kinda thing soon
+      
+      // var changes = runIfFun(me, h.changes, arguments);
+      // if (changes) {
+      //   $.log("render Element w/ changes", h)
+      //   setupChanges(me, app, changes, arguments);
+      // }
+    }    
   };
   
   // todo this should return the new element
@@ -141,27 +150,36 @@
       var elem = $(selector, me);
       // setup selectors recursively
       forIn(handlers, function(name, h) {
-        $.log("selectos",name, h)
+        $.log("selector",name, h)
         eventlyHandler(elem, app, name, h);
       });
     });
   };
   
-  function changesQuery(me, app, c, args) {
-    $.log("setup changesQuery")
-    var q = runIfFun(me, c.query, args);
-    // $.log(q)
+  function runQuery(me, app, h, args) {
+    $.log("runQuery", arguments)
+    var q = runIfFun(me, h.query, args);
     var viewName = q.view;
     delete q.view;
     var userSuccess = q.success;
     delete q.success;
     q.success = function(resp) {
-      $.log("q.suc", resp)
-      // here is where we handle the per-row templates
-      var act = c.render || "append";
-
-      // we need to generalize this
-      // this can be the a generic element renderer
+      $.log("runQuery success", resp)
+      renderElement(me, app, h, [resp], true);
+      userSuccess && userSuccess(resp);
+    };
+    app.view(viewName, q);
+  }
+  
+  function changesQuery(me, app, c, args) {
+    $.log("setup changesQuery")
+    var q = runIfFun(me, c.query, args);
+    var viewName = q.view;
+    delete q.view;
+    var userSuccess = q.success;
+    delete q.success;
+    q.success = function(resp) {
+      $.log("changesQuery success", resp)
       if (c.mustache) {
         resp.rows.reverse().forEach(function(row) {
           renderElement(elem, app, c, [row])
@@ -170,12 +188,12 @@
       userSuccess && userSuccess(resp);
     };
     // todo: scope this to a db
-    $("body").bind("evently.changes", function() {
-      // todo we can use the view to filter changes
-      newRows(app, viewName, q);
-      // todo delete other bindings?
-      // todo make this a single callback per widget
-    });
+    // $("body").bind("evently.changes", function() {
+    //   // todo we can use the view to filter changes
+    //   newRows(app, viewName, q);
+    //   // todo delete other bindings?
+    //   // todo make this a single callback per widget
+    // });
     newRows(app, viewName, q);
   }  
 
