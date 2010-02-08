@@ -94,14 +94,23 @@
     }
   };
   
+  $.fn.replace = function(elem) {
+    $(this).empty().append(elem);
+  };
+  
   // todo: ability to call this
   // to render and "prepend/append/etc" a new element to the host element (me)
   // as well as call this in a way that replaces the host elements content
   // this would be easy if there is a simple way to get at the element we just appended
   // (as html) so that we can attache the selectors
   function renderElement(me, app, h, args) {
+    $.log("render Element", arguments)
+    
     if (h.mustache) {
-      mustachioed(me, h, args);
+      var newElem = mustachioed(me, h, args);
+      $.log(newElem)
+      var act = h.render || "replace";
+      me[act](newElem);
     }
     var selectors = runIfFun(me, h.selectors, args);
     if (selectors) {
@@ -114,13 +123,14 @@
     // move this inside renderElement to make it recursive
     var changes = runIfFun(me, h.changes, arguments);
     if (changes) {
+      $.log("render Element w/ changes", h)
       setupChanges(me, app, changes, arguments);
     }
   };
   
   // todo this should return the new element
   function mustachioed(me, h, args) {
-    me.html($.mustache(
+    return $($.mustache(
       runIfFun(me, h.mustache, args),
       runIfFun(me, h.data, args), 
       runIfFun(me, h.partials, args)));
@@ -131,13 +141,14 @@
       var elem = $(selector, me);
       // setup selectors recursively
       forIn(handlers, function(name, h) {
+        $.log("selectos",name, h)
         eventlyHandler(elem, app, name, h);
       });
     });
   };
   
   function changesQuery(me, app, c, args) {
-    // $.log("changesQuery")
+    $.log("setup changesQuery")
     var q = runIfFun(me, c.query, args);
     // $.log(q)
     var viewName = q.view;
@@ -145,22 +156,15 @@
     var userSuccess = q.success;
     delete q.success;
     q.success = function(resp) {
-      // $.log("q.suc", resp)
+      $.log("q.suc", resp)
       // here is where we handle the per-row templates
       var act = c.render || "append";
-
-      renderElement(elem, app, c, [row])
 
       // we need to generalize this
       // this can be the a generic element renderer
       if (c.mustache) {
         resp.rows.reverse().forEach(function(row) {
-          var item = $(mustachioed(me, c, [row]));
-          selectors = runIfFun(me, c.selectors, [row]);
-          if (selectors) {
-            applySelectors(item, app, selectors);
-          }
-          me[act](item);
+          renderElement(elem, app, c, [row])
         });
       }
       userSuccess && userSuccess(resp);
@@ -176,22 +180,25 @@
   }  
 
   function setupChanges(me, app, handler, args) {
-    // $.log("setupChanges")
+    $.log("setupChanges", handler)
     // handler has fields:
     // render, query, template, data
-    var c = runIfFun(me, handler, args);
-    if (c.query) {
+    var c = runIfFun(me, handler.changes, args);
+    if (c.type == "newRows") {
       // todo the initial setup might want to run slightly differently (use path info)
       changesQuery(me, app, c, args)
+    } else if (c.type == "document") {
+      changesDoc(me, app, c, args)
     } else {
-      // just render the template with the data (which might be a fun)
+      // just the raw change row
+      changesRaw(me, app, c, args)
     }
   };
   
   // this is for the items handler
   var lastViewId, highKey, inFlight;
   function newRows(app, view, opts) {
-    // $.log(["newRows", arguments])
+    $.log(["newRows", arguments])
     // on success we'll set the top key
     var thisViewId, successCallback = opts.success, full = false;
     function successFun(resp) {

@@ -1,5 +1,5 @@
 $.log = function() {
-  // console.log(arguments);
+  console.log(arguments);
 };
 $.couch.app(function(app) {
   
@@ -10,9 +10,12 @@ $.couch.app(function(app) {
     // will always appear at one end
     var task_changes = {
       mustache : app.ddoc.templates.task,
+      type : "newRows",
+      // type can be newRows, document, or info
       render : "prepend",
       query : query,
       data : function(r) {
+        $.log("data", arguments)
         var v = r.value;
         return {
           avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
@@ -51,20 +54,18 @@ $.couch.app(function(app) {
           }
         }
       }
-    }
+    };
     return {
       path : path,
       mustache : app.ddoc.templates.tasks,
       selectors : {
         ul : {
+          // todo does this drive changes?
           changes : task_changes
         }
-      },
-      changes : {
-        // we could have root element level changes here
       }
     };
-  };
+  }
 
   var tasks = {
     recent : tasksHandler("/", {
@@ -81,7 +82,7 @@ $.couch.app(function(app) {
         endkey : [params.tag],
         reduce : false,
         descending : true
-      }
+      };
     }),
     users : tasksHandler("/users/:name", function(e, params) {
       // $.log("users query", e, params);
@@ -91,7 +92,7 @@ $.couch.app(function(app) {
         startkey : [params.name, {}],
         endkey : [params.name],
         descending : true
-      }
+      };
     }),
     mentions : tasksHandler("/mentions/:name", function(e, params) {
       // $.log("mentions query", e, params);
@@ -102,7 +103,7 @@ $.couch.app(function(app) {
         endkey : [params.name],
         descending : true,
         reduce : false
-      }
+      };
     })
   };
 
