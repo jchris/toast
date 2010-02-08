@@ -64,7 +64,7 @@ $.couch.app(function(app) {
       selectors : {
         ul : {
           // todo does this drive changes?
-          _init: task_changes
+          _changes: task_changes
         }
       }
     };

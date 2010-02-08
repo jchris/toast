@@ -38,7 +38,8 @@
         });
       });
     },
-    paths : []
+    paths : [],
+    changesDBs : {}
   };
   
   $.fn.evently = function(events, app) {
@@ -53,13 +54,13 @@
       elem.trigger("_init");
     }
     
-    // if the widget has a changes listener, 
-    // connect it to the listener for its db
-    
-    // app && connectToChanges(app, function() {
-    //   // $.log('chnge')
-    //   $("body").trigger("evently.changes");    
-    // });
+    if (app && events._changes) {
+      $("body").bind("evently.changes."+app.db.name, function() {
+        elem.trigger("_changes");        
+      });
+      followChanges(app);
+      elem.trigger("_changes");
+    }
   };
   
   // eventlyHandler applies the user's handler (h) to the 
@@ -128,14 +129,6 @@
       if (h.after) {
         h.after.apply(me, args);
       }
-      
-      // changes is gonna be a new kinda thing soon
-      
-      // var changes = runIfFun(me, h.changes, arguments);
-      // if (changes) {
-      //   $.log("render Element w/ changes", h)
-      //   setupChanges(me, app, changes, arguments);
-      // }
     }    
   };
   
@@ -149,13 +142,19 @@
   
   function runQuery(me, app, h, args) {
     $.log("runQuery", arguments)
-    var q = runIfFun(me, h.query, args);
-    var qType = q.type;
-    delete q.type;
-    var viewName = q.view;
-    delete q.view;
-    var userSuccess = q.success;
-    delete q.success;
+    var qu = runIfFun(me, h.query, args);
+    var qType = qu.type;
+    // delete q.type;
+    var viewName = qu.view;
+    // delete q.view;
+    var userSuccess = qu.success;
+    // delete q.success;
+    
+    var q = {};
+    forIn(qu, function(k, v) {
+      q[k] = v;
+    });
+    
     if (qType == "newRows") {
       q.success = function(resp) {
         resp.rows.reverse().forEach(function(row) {
@@ -266,6 +265,18 @@
       app.view(view, opts);
     }
   };
+  
+  // only start one changes listener per db
+  function followChanges(app) {
+    var dbName = app.db.name;
+    if (!$.evently.changesDBs[dbName]) {
+      connectToChanges(app, function() {
+        $("body").trigger("evently.changes."+dbName);
+      });
+      $.evently.changesDBs[dbName] = true;
+    }
+  }
+  
   
   function connectToChanges(app, fun) {
     function resetHXR(x) {

@@ -52,7 +52,7 @@ $.couch.app(function(app) {
   };
 
   var tagcloud = {
-    _init : {
+    _changes : {
       query : {
         view : "tag-cloud",
         group_level : 1,
@@ -74,7 +74,7 @@ $.couch.app(function(app) {
   };
   
   var usercloud = {
-    _init : {
+    _changes : {
       query : {
         view : "user-cloud",
         group_level : 1,
