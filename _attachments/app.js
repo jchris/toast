@@ -59,7 +59,7 @@ $.couch.app(function(app) {
       },
       mustache : app.ddoc.templates.tag_cloud,
       data : function(resp) {
-        $.log("tagcloud data", arguments)
+        // $.log("tagcloud data", arguments)
         var tags = resp.rows.map(function(r) {
           return {
             tag : r.key,

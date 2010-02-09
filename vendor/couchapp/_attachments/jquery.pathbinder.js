@@ -17,7 +17,20 @@
   }
   
   $.pathbinder = {
-    paths : []
+    paths : [],
+    begin : function(defaultPath) {
+      // this should trigger the defaultPath if there's not a path in the URL
+      // otherwise it should trigger the URL's path
+      $(function() {
+        var loadPath = getPath();
+        if (loadPath) {
+          triggerOnPath(loadPath);
+        } else {
+          goPath(defaultPath);          
+          triggerOnPath(defaultPath);
+        }
+      })
+    }
   };
 
   function pollPath(every) {
@@ -60,7 +73,7 @@
     } else {
       pollPath(10);
     }
-    setTimeout(hashChanged,50);
+    // setTimeout(hashChanged,50);
     $(window).bind('hashchange', hashChanged);
   });
 
@@ -70,6 +83,10 @@
 
   function setPath(pathSpec, params) {
     var newPath = $.mustache(pathSpec.template, params);
+    goPath(newPath);
+  };
+  
+  function goPath(newPath) {
     window.location = '#'+newPath;
     _lastPath = getPath();
   };
@@ -100,9 +117,9 @@
   };
 
   $.fn.pathbinder = function(name, path) {
-    self = $(this);
+    var self = $(this);
     var pathSpec = makePathSpec(path, function(params) {
-      $.log("path cb", name, path, self)
+      // $.log("path cb", name, path, self)
       self.trigger(name, [params]);
     });
     self.bind(name, function(ev, params) {

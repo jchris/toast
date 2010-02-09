@@ -42,7 +42,7 @@
     changesDBs : {}
   };
   
-  $.fn.evently = function(events, app) {
+  $.fn.evently = function(events, app, init_args) {
     var elem = $(this);
 
     // setup the handlers onto elem
@@ -108,22 +108,22 @@
     // if there's a query object we run the query,
     // and then call the data function with the response.
     if (h.query && !qrun) {
-      $.log("query before renderElement", arguments)
+      // $.log("query before renderElement", arguments)
       runQuery(me, app, h, args)
     } else {
-      $.log("renderElement")
-      $.log(h, args, qrun)
+      // $.log("renderElement")
+      // $.log(h, args, qrun)
       // otherwise we just render the template with the current args
       if (h.mustache) {
         var newElem = mustachioed(me, h, args);
-        $.log("mus",newElem)
+        // $.log("mus",newElem)
         var act = h.render || "replace";
         me[act](newElem);
       }
       var selectors = runIfFun(me, h.selectors, args);
       if (selectors) {
         forIn(selectors, function(selector, handlers) {
-          $(selector, me).evently(handlers, app);
+          $(selector, me).evently(handlers, app, args);
         });
       }
       if (h.after) {
@@ -141,14 +141,12 @@
   };
   
   function runQuery(me, app, h, args) {
-    $.log("runQuery", arguments)
+    // $.log("runQuery: args", args)
     var qu = runIfFun(me, h.query, args);
     var qType = qu.type;
-    // delete q.type;
     var viewName = qu.view;
-    // delete q.view;
     var userSuccess = qu.success;
-    // delete q.success;
+    // $.log("qType", qType)
     
     var q = {};
     forIn(qu, function(k, v) {
@@ -157,6 +155,7 @@
     
     if (qType == "newRows") {
       q.success = function(resp) {
+        // $.log("runQuery newRows success", resp)
         resp.rows.reverse().forEach(function(row) {
           renderElement(me, app, h, [row], true)
         });
@@ -165,7 +164,7 @@
       newRows(app, viewName, q);
     } else {
       q.success = function(resp) {
-        $.log("runQuery success", resp)
+        // $.log("runQuery success", resp)
         renderElement(me, app, h, [resp], true);
         userSuccess && userSuccess(resp);
       };
@@ -173,50 +172,50 @@
     }
   }
   
-  function changesQuery(me, app, c, args) {
-    $.log("setup changesQuery")
-    var q = runIfFun(me, c.query, args);
-    var viewName = q.view;
-    delete q.view;
-    var userSuccess = q.success;
-    delete q.success;
-    q.success = function(resp) {
-      $.log("changesQuery success", resp)
-      if (c.mustache) {
+  // function changesQuery(me, app, c, args) {
+  //   $.log("setup changesQuery")
+  //   var q = runIfFun(me, c.query, args);
+  //   var viewName = q.view;
+  //   delete q.view;
+  //   var userSuccess = q.success;
+  //   delete q.success;
+  //   q.success = function(resp) {
+  //     $.log("changesQuery success", resp)
+  //     if (c.mustache) {
+  // 
+  //     }
+  //     userSuccess && userSuccess(resp);
+  //   };
+  //   // todo: scope this to a db
+  //   // $("body").bind("evently.changes", function() {
+  //   //   // todo we can use the view to filter changes
+  //   //   newRows(app, viewName, q);
+  //   //   // todo delete other bindings?
+  //   //   // todo make this a single callback per widget
+  //   // });
+  //   newRows(app, viewName, q);
+  // }  
 
-      }
-      userSuccess && userSuccess(resp);
-    };
-    // todo: scope this to a db
-    // $("body").bind("evently.changes", function() {
-    //   // todo we can use the view to filter changes
-    //   newRows(app, viewName, q);
-    //   // todo delete other bindings?
-    //   // todo make this a single callback per widget
-    // });
-    newRows(app, viewName, q);
-  }  
-
-  function setupChanges(me, app, handler, args) {
-    $.log("setupChanges", handler)
-    // handler has fields:
-    // render, query, template, data
-    var c = runIfFun(me, handler.changes, args);
-    if (c.type == "newRows") {
-      // todo the initial setup might want to run slightly differently (use path info)
-      changesQuery(me, app, c, args)
-    } else if (c.type == "document") {
-      changesDoc(me, app, c, args)
-    } else {
-      // just the raw change row
-      changesRaw(me, app, c, args)
-    }
-  };
+  // function setupChanges(me, app, handler, args) {
+  //   $.log("setupChanges", handler)
+  //   // handler has fields:
+  //   // render, query, template, data
+  //   var c = runIfFun(me, handler.changes, args);
+  //   if (c.type == "newRows") {
+  //     // todo the initial setup might want to run slightly differently (use path info)
+  //     changesQuery(me, app, c, args)
+  //   } else if (c.type == "document") {
+  //     changesDoc(me, app, c, args)
+  //   } else {
+  //     // just the raw change row
+  //     changesRaw(me, app, c, args)
+  //   }
+  // };
   
   // this is for the items handler
   var lastViewId, highKey, inFlight;
   function newRows(app, view, opts) {
-    $.log(["newRows", arguments])
+    // $.log(["newRows", arguments])
     // on success we'll set the top key
     var thisViewId, successCallback = opts.success, full = false;
     function successFun(resp) {
@@ -236,9 +235,9 @@
     opts.success = successFun;
     
     if (opts.descending) {
-      thisViewId = view + (opts.startkey ? opts.startkey.toSource() : "");
+      thisViewId = view + (opts.startkey ? JSON.stringify(opts.startkey) : "");
     } else {
-      thisViewId = view + (opts.endkey ? opts.endkey.toSource() : "");
+      thisViewId = view + (opts.endkey ? JSON.stringify(opts.endkey) : "");
     }
     // $.log(["thisViewId",thisViewId])
     // for query we'll set keys

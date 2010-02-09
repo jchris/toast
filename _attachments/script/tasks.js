@@ -11,80 +11,88 @@ $.couch.app(function(app) {
 
     // type can be view, newRows, document, or info
     // if there is .query, default is view
-    query.type = "newRows";
 
-    var task_changes = {
-      mustache : app.ddoc.templates.task,
-      render : "prepend",
-      query : query,
-      data : function(r) {
-        $.log("tas data", arguments)
-        var v = r.value;
-        return {
-          avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
-          body : $.linkify($.mustache.escape(r.value.body)),
-          name : v.authorProfile && v.authorProfile.name,
-          name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
-          id : r.id // todo this should be handled in dom-land / evently
-        };
-      },
-      selectors : {
-        'a[href=#done]' : {
-          click : function() {
-            var li = $(this).parents("li");
-            var task_id = li.attr("data-id");
-            app.db.openDoc(task_id, {
-              success : function(doc) {
-                doc.state = "done";
-                doc.done_by = $("#account").attr("data-name");
-                doc.done_at = new Date();
-                app.db.saveDoc(doc, {
-                  success : function() {
-                    li.addClass("done");
-                    li.slideUp("slow");
-                  }
-                });
-              }
-            });
-            return false;
-          }
-        },
-        'a[href=#reply]' : {
-          click : function() {
-            var li = $(this).parents("li");
-            $("div.reply",li).evently(reply);
-            return false;            
-          }
-        }
-      }
-    };
     return {
       path : path,
       mustache : app.ddoc.templates.tasks,
-      selectors : {
-        ul : {
-          // todo does this drive changes?
-          _changes: task_changes
-        }
+      selectors : function(e, params) {
+        
+        var task_changes = {
+          mustache : app.ddoc.templates.task,
+          render : "prepend",
+          // we want this query to be set during the event
+          // that triggered the parent to be created,
+          // not rebuilt each time based on changes as they come in
+          query : query(e, params), 
+          data : function(r) {
+            // $.log("task data", arguments);
+            var v = r.value;
+            return {
+              avatar_url : v.authorProfile && v.authorProfile.gravatar_url,
+              body : $.linkify($.mustache.escape(r.value.body)),
+              name : v.authorProfile && v.authorProfile.name,
+              name_uri : v.authorProfile && encodeURIComponent(v.authorProfile.name),
+              id : r.id // todo this should be handled in dom-land / evently
+            };
+          },
+          selectors : {
+            'a[href=#done]' : {
+              click : function() {
+                var li = $(this).parents("li");
+                var task_id = li.attr("data-id");
+                app.db.openDoc(task_id, {
+                  success : function(doc) {
+                    doc.state = "done";
+                    doc.done_by = $("#account").attr("data-name");
+                    doc.done_at = new Date();
+                    app.db.saveDoc(doc, {
+                      success : function() {
+                        li.addClass("done");
+                        li.slideUp("slow");
+                      }
+                    });
+                  }
+                });
+                return false;
+              }
+            },
+            'a[href=#reply]' : {
+              click : function() {
+                var li = $(this).parents("li");
+                $("div.reply",li).evently(reply);
+                return false;            
+              }
+            }
+          }
+        };
+
+        return {
+          ul : {
+            _changes : task_changes
+          }
+        } 
       }
     };
   }
 
   var tasks = {
-    recent : tasksHandler("/", {
-      view : "recent-tasks", 
-      limit : 25,
-      descending : true
+    recent : tasksHandler("/", function(e, params) {
+      return {
+        view : "recent-tasks", 
+        limit : 25,
+        descending : true,
+        type : "newRows"
+      }
     }),
     tags : tasksHandler("/tags/:tag", function(e, params) {
-      // $.log("tags query", e, params);
       return {
         view : "tag-cloud",
         limit : 25,
         startkey : [params.tag, {}],
         endkey : [params.tag],
         reduce : false,
-        descending : true
+        descending : true,
+        type : "newRows"
       };
     }),
     users : tasksHandler("/users/:name", function(e, params) {
@@ -94,7 +102,8 @@ $.couch.app(function(app) {
         limit : 25,
         startkey : [params.name, {}],
         endkey : [params.name],
-        descending : true
+        descending : true,
+        type : "newRows"
       };
     }),
     mentions : tasksHandler("/mentions/:name", function(e, params) {
@@ -105,12 +114,14 @@ $.couch.app(function(app) {
         startkey : [params.name, {}],
         endkey : [params.name],
         descending : true,
-        reduce : false
+        reduce : false,
+        type : "newRows"
       };
     })
   };
 
   $("#tasks").evently(tasks, app);
+  $.pathbinder.begin("/");
   
   var reply = {
     _init: {
