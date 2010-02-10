@@ -265,12 +265,18 @@ var Mustache = function() {
     */
     to_html: function(template, view, partials) {
       return new Renderer().render(template, view, partials);
+    },
+    escape : function(text) {
+      return new Renderer().escape(text);
     }
   });
 }();
 
   $.mustache = function(template, view, partials) {
     return Mustache.to_html(template, view, partials);
+  };
+  $.mustache.escape = function(text) {
+    return Mustache.escape(text);
   };
 
 })(jQuery);

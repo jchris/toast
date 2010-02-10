@@ -1,7 +1,7 @@
 body {
-  font-family:Optima, "Palatino Linotype", Garamond, Georgia, serif;
+  font:1em Helvetica, sans-serif;
   margin:0;
-  padding:0;
+  padding:4px;
 }
 
 h1 {
@@ -14,62 +14,112 @@ h2 {
 
 #header {
   padding:4px;
-  background:#bbb;
 }
 
-#userCtx {
+#account {
   float:right;
 }
 
 #content {
-  background:#eee;
   clear:both;
 }
 
-#footer {
-  background:#8ab;
-}
-
-#chat {
+#activity {
   width:65%;
 }
 
 #sidebar {
   float:right;
-  width:30%;
+  width:30%;  
 }
 
-ul#messages {
+#tagcloud, #usercloud {
+  padding:24px 4px;
+}
+
+#tasks ul {
   list-style: none;
   margin:0;
-  padding:2px;
+  padding:0;
 }
 
 .clear {
   clear:left;
 }
 
-ul#messages li {
+#tasks li, #profile {
   padding:4px;
-  margin:4px;
-  background:#fff;
+  padding-bottom:0;
+  margin:6px;
+  margin-bottom:0;
+  border: 1px solid #fff;
+  background-color:#fff;
+  -webkit-border-radius:14px;
+  -webkit-transition-property:background-color;
+  -webkit-transition-duration:0.5s;
+  -moz-border-radius:14px;
+  -moz-transition-property:background-color;
+  -moz-transition-duration:0.5s;
 }
 
-ul#messages img.gravatar {
-  padding-right:4px;
+div#profile {
+  border: 1px solid #999;
+  background-color:#ddd;  
+}
+
+#profile textarea {
+  width:80%;
+}
+
+#tasks li:hover {
+  border: 1px solid #999;
+  background-color:#aaa;
+}
+
+#tasks li.done, #tasks li.done:hover {
+  background-color:#cfb;
+}
+
+#tasks li .body {
+  padding:8px;
+  padding-bottom:0;
+}
+
+#tasks li .react a {
+  color:#fff;
+  padding:0 4px;
+  font-size:0.78em;
+}
+
+#tasks li div.replies li {
+  font-size:0.84em;
+  background:none;
+  border:1px solid #fff;
+}
+
+#tasks li div.replies {
+  margin:2px;
+}
+
+div.avatar {
+  padding:2px;
+  padding-bottom:0;
+  margin-right:4px;
   float:left;
+  font-size:0.78em;
+  width : 60px;
+  height : 60px;
+  text-align: center;
 }
 
-.perma .say {
-  font-size:180%;
+div.avatar .name {
+  padding-top:2px;
 }
 
-a.perma, .date {
-  font-size:70%;
-  color:#dde;
+div.avatar img {
+  margin:0 auto;
+  padding:0;
+  width : 40px;
+  height : 40px;
 }
 
-form {
-  padding:10px;
-  background:#ddd;
-}

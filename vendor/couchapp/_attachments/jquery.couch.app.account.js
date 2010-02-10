@@ -6,18 +6,17 @@
 //   $("#userCtx").evently($.couch.app.account);
 //   $("#userCtx").trigger("refresh");
 // 
-jQuery(function($) {
+$.couch.app(function(app) {
+  var t = app.ddoc.vendor.couchapp.templates.account;
+  
   function makeLoginOrSignupFormHandler(action) {
     // A tiny bit of metaprogramming to set up the evently handlers (with
     // mustache) for the signup and login forms. The evently template is
     // returned as a static object, and interpreted when triggered (like 
     // the other evently templates stored in $.couch.app.account).
     return {
-      template :
-        '<form><label for="name">Name</label> <input type="text" name="name" value="">'
-        + '<label for="password">Password</label> <input type="password" name="password" value="">'
-        + '<input type="submit" value="{{action}}"></form>',
-      view : {action : action},
+      mustache : t.login_signup_form,
+      data : {action : action},
       selectors : {
         form : {
           submit : [function(e) {
@@ -26,7 +25,8 @@ jQuery(function($) {
             $(this).trigger("do"+action, [name, pass]);
             return false;
           }]
-        }
+        },
+        "a[href=#back]" : {click : ["loggedOut"]}
       },
       after : function() {
         $("input[name=name]", this).focus();
@@ -39,20 +39,17 @@ jQuery(function($) {
   // handler.
   $.couch.app = $.couch.app || {};
   $.couch.app.account = {
-    init : function() {
-      $(this).trigger("refresh"); 
-    },
+    _init: "refresh",
     loggedOut : {
-      template : '<a href="#signup">Signup</a> or <a href="#login">Login</a>',
+      mustache : t.logged_out,
       selectors : {
         "a[href=#signup]" : {click : ["signupForm"]},
          "a[href=#login]" : {click : ["loginForm"]}
       }
     },
     loggedIn : {
-      template : 
-        'Welcome <a target="_new" href="/_utils/document.html?{{auth_db}}/org.couchdb.user%3A{{uri_name}}">{{name}}</a>! <a href="#logout">Logout?</a>',
-      view : function(e, r) {
+      mustache : t.logged_in,
+      data : function(e, r) {
         return {
           name : r.userCtx.name,
           uri_name : encodeURIComponent(r.userCtx.name),
@@ -61,6 +58,9 @@ jQuery(function($) {
       },
       selectors : {
         'a[href=#logout]' : {click : ["doLogout"]}
+      },
+      after : function(e, r) {
+        $(this).attr("data-name", r.userCtx.name);
       }
     },
     adminParty : function() {
