@@ -1,6 +1,6 @@
 function(doc) {
-  // !code helpers/md5.js
-  // !code _attachments/html.js
+  // !.code helpers/md5.js
+  // !.code _attachments/html.js
   
   if (doc.channel && doc.message) {
     var mess = doc.message;
