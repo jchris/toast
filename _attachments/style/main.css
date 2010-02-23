@@ -45,6 +45,10 @@ ul {
   padding:4px;
 }
 
+.clear {
+  clear:left;
+}
+
 #chat li, #profile {
   padding:4px;
   padding-bottom:0;
@@ -58,6 +62,17 @@ ul {
   -moz-border-radius:14px;
   -moz-transition-property:background-color;
   -moz-transition-duration:0.5s;
+}
+
+
+#chat .date {
+  font-size: 0.78em;
+  color:#333;
+  padding:4px;
+}
+
+#chat .body {
+  padding:2px;
 }
 
 form {
@@ -74,7 +89,6 @@ div.avatar {
   float:left;
   font-size:0.78em;
   width : 60px;
-  height : 60px;
   text-align: center;
 }
 
