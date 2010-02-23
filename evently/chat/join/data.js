@@ -1,3 +1,3 @@
-function(e, channel) {
-  return channel;
+function(resp) {
+  return resp.rows[0].value;
 };

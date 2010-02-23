@@ -1,5 +1,5 @@
 function(doc) {
-  if (doc.type == "channel") {
-    emit(doc.name, doc);
+  if (doc.type == "channel" && doc.channel) {
+    emit(doc.channel, doc);
   }
 }

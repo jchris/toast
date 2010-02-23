@@ -1,10 +1,10 @@
 function(e) {
-  var params = e.data.args[1];
+  var chan = e.data.args[0].rows[0].value;
   return {
     view : "messages",
     limit : 25,
-    startkey : [params.channel, {}],
-    endkey : [params.channel],
+    startkey : [chan.channel, {}],
+    endkey : [chan.channel],
     reduce : false,
     descending : true,
     type : "newRows"

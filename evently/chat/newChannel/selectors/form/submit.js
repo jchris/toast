@@ -4,7 +4,7 @@ function() {
   var name = $("input[name=name]", f).val();
   var doc = {
     id : "toast.channel:"+name,
-    name : name,
+    channel : name,
     desc : $("input[name=desc]", f).val(),
     type : "channel"
   };
