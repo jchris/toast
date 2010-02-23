@@ -12,6 +12,12 @@ h2 {
   color:#222;
 }
 
+h3 {
+  margin:4px;
+  color:#222;
+  font-style: italic;
+}
+
 #header {
   padding:4px;
 }
@@ -31,6 +37,12 @@ h2 {
 #sidebar {
   float:right;
   width:30%;  
+}
+
+ul {
+  list-style: none;
+  margin:0;
+  padding:4px;
 }
 
 #chat li, #profile {
