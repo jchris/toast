@@ -1,10 +1,13 @@
-<li>
+<li data-id="{{id}}">
   <div class="avatar">
-    <img src="{{avatar_url}}"/>
+    {{#avatar_url}}<img src="{{avatar_url}}"/>{{/avatar_url}}
     <br/>
     <a class="name" href="{{url}}">{{name}}</a>
   </div>
   <div class="body">{{{body}}}</div>
-  <div class="date">{{created_at}}</div>
+  <div class="meta">
+    <span class="date">{{created_at}}</span>
+    {{#owned}}<a class="delete" href="#delete">[x]</a>{{/owned}}
+  </div>
   <div class="clear"></div>
 </li>

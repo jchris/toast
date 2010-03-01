@@ -57,15 +57,22 @@ ul {
   border: 1px solid #999;
   background-color:#ddd;
   -webkit-border-radius:14px;
-  -webkit-transition-property:background-color;
-  -webkit-transition-duration:0.5s;
   -moz-border-radius:14px;
-  -moz-transition-property:background-color;
-  -moz-transition-duration:0.5s;
 }
 
+#chat li a.delete {
+  color:#ddd;
+  -webkit-transition-property:color;
+  -webkit-transition-duration:0.25s;
+  -moz-transition-property:color;
+  -moz-transition-duration:0.25s;
+}
 
-#chat .date {
+#chat li:hover a.delete {
+  color:#00b;
+}
+
+#chat .meta {
   font-size: 0.78em;
   color:#333;
   padding:4px;
@@ -81,6 +88,9 @@ form {
   margin:6px;
 }
 
+input[name=message] {
+  width:88%;
+}
 
 div.avatar {
   padding:2px;

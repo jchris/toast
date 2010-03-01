@@ -6,7 +6,8 @@ function() {
     id : "toast.channel:"+name,
     channel : name,
     desc : $("input[name=desc]", f).val(),
-    type : "channel"
+    type : "channel",
+    author : $$("#profile").profile
   };
   app.db.saveDoc(doc, {
     success : function() {
