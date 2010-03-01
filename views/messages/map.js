@@ -1,5 +1,5 @@
 function(doc) {
-  if (doc.channel && doc.body) {
-    emit([doc.channel, doc._local_seq], doc);
+  if (doc.body && doc.channel && doc.channel == "chip") {
+    emit(doc._local_seq, doc);
   }
 };

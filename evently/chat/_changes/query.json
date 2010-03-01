@@ -1,9 +1,6 @@
 {
   "view" : "messages",
   "limit" : 25,
-  "startkey" : ["chip", {}],
-  "endkey" : ["chip"],
-  "reduce" : false,
   "descending" : true,
   "type" : "newRows"
 }
