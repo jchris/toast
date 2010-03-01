@@ -10,8 +10,5 @@ $.couch.app(function(app) {
 
   $.evently.connect($("#account"), $("#profile"), ["loggedIn", "loggedOut"]);
 
-  $("#actions").evently(app.ddoc.evently.actions);
-  $("#channels").evently(app.ddoc.evently.channels, app);
   $("#chat").evently(app.ddoc.evently.chat, app);
-  $.pathbinder.begin("/");
 });

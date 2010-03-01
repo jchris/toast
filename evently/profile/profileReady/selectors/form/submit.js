@@ -2,7 +2,7 @@ function(e) {
   var f = $(this);
   var doc = {
     body : $("input[name=message]", f).val(),
-    channel : $$("#chat").channel,
+    channel : "chip", // hardcode the channel for chip
     author : $$("#profile").profile,
     created_at : new Date()
   };
