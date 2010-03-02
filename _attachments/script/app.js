@@ -10,5 +10,6 @@ $.couch.app(function(app) {
 
   $.evently.connect($("#account"), $("#profile"), ["loggedIn", "loggedOut"]);
 
+  // start the chat widget
   $("#chat").evently(app.ddoc.evently.chat, app);
 });
